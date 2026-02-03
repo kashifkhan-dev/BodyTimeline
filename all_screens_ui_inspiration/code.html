@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Progress Comparison</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#BEF264", // Light green
+              "background-light": "#FFFFFF",
+              "background-dark": "#000000",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "1.25rem",
+            },
+          },
+        },
+      };
+    </script>
+<style type="text/tailwindcss">
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .iphone-frame {
+            max-width: 393px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-zinc-100 dark:bg-black font-display">
+<div class="iphone-frame bg-background-light dark:bg-zinc-950 shadow-2xl overflow-hidden flex flex-col">
+<div class="px-8 pt-4 flex justify-between items-center text-black dark:text-white">
+<span class="text-sm font-semibold">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-[17px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[17px]">wifi</span>
+<span class="material-symbols-outlined text-[17px]">battery_full</span>
+</div>
+</div>
+<header class="px-6 pt-4 pb-2">
+<div class="flex justify-between items-center mb-6">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white">
+<span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-black dark:text-white uppercase">Progress</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white">
+<span class="material-symbols-outlined text-xl">share</span>
+</button>
+</div>
+<div class="p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl flex relative">
+<button class="flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl bg-primary text-black transition-all duration-200">
+                Face
+            </button>
+<button class="flex-1 py-2.5 text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-all duration-200">
+                Body
+            </button>
+</div>
+</header>
+<main class="flex-1 px-4 py-4 flex flex-col gap-4 overflow-hidden">
+<div class="flex-1 relative flex gap-1.5 overflow-hidden">
+<div class="relative flex-1 rounded-[2rem] overflow-hidden bg-zinc-200 dark:bg-zinc-900 group">
+<img alt="Comparison before photo" class="absolute inset-0 w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDitcyCFTfShAcGRGv0ySOQKM0YA63iongPIJ723KtLMu3twIOCb4JGX8wyF5700pZJyvFG3lSuBeMDwH4bwf1t-x7YvKwBjHjMfE5_mR4_aa4xLNwkZfo-DTENTk9hm14z1U3jSM99xWERoiaLcCEA0vl_JM8_PO0s2T_AcbmY3KLSzwQqJnxiIsR73EIzGR182s2JrYoAiUOB8P58EeBTFchNGxDqKUzppHnPdYnyqAHhkLJpJiqwJF3yGJ_QWtCl5nq4bDuX3g0"/>
+<div class="absolute inset-0 bg-black/5"></div>
+<div class="absolute bottom-4 left-4 bg-white/90 dark:bg-black/90 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-800">
+<span class="text-[9px] font-bold uppercase tracking-widest text-black dark:text-white">Jan 6</span>
+</div>
+<div class="absolute top-4 left-4 px-3 py-1 bg-black text-white rounded-lg">
+<span class="text-[10px] font-bold uppercase tracking-widest">Before</span>
+</div>
+</div>
+<div class="relative flex-1 rounded-[2rem] overflow-hidden bg-zinc-200 dark:bg-zinc-900 group">
+<img alt="Comparison after photo" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxOdqT3oeY2ovg4ilOgCrkIZIRSXV0QaLr0D8nItaDpPVuS2bp7nE94TQXZPQVI6GdYhxd60kmToOCdXhL6NFEG7O1OKl5vTop44R9PHdeuTaNJNSGSm-Qd0eEvV3jFIxl-9Ze6OGnYtNC7RCU14ttFkAYxZTLL8zJLcXrHbXVjMOdVZF6rfjWQbsu9I7vkE1i8Mg2JRQn-a-0oEui0O6WT8suvy9BAOo5HgWSOfAGNDKR7L8U3deJhM23GECXj-v2ZlbL9tdk8CE"/>
+<div class="absolute inset-0 bg-black/5"></div>
+<div class="absolute bottom-4 right-4 bg-primary px-3 py-1 rounded-full">
+<span class="text-[9px] font-bold uppercase tracking-widest text-black">Today</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-primary text-black rounded-lg">
+<span class="text-[10px] font-bold uppercase tracking-widest">After</span>
+</div>
+</div>
+<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white dark:bg-zinc-900 border-2 border-black dark:border-white shadow-xl flex items-center justify-center pointer-events-none z-10">
+<span class="material-symbols-outlined text-black dark:text-white text-xl">unfold_more</span>
+</div>
+</div>
+<div class="pt-2 pb-6">
+<div class="flex justify-between items-center mb-6 px-2">
+<span class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">Timeline</span>
+<div class="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 px-3 py-1 rounded-full">
+<span class="text-[10px] font-bold text-black dark:text-white uppercase tracking-wider">Jan 2024</span>
+<span class="material-symbols-outlined text-sm text-zinc-400">expand_more</span>
+</div>
+</div>
+<div class="relative h-16 flex items-center">
+<div class="absolute inset-x-0 h-[2px] bg-zinc-100 dark:bg-zinc-900 rounded-full"></div>
+<div class="w-full flex justify-between items-center px-4 overflow-x-auto no-scrollbar gap-6 relative z-10">
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+<span class="text-[9px] font-bold text-zinc-400">12</span>
+</div>
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+<span class="text-[9px] font-bold text-zinc-400">15</span>
+</div>
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-4 h-4 rounded-full border-2 border-black dark:border-white bg-primary shadow-sm"></div>
+<span class="text-[9px] font-extrabold text-black dark:text-white">06</span>
+</div>
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+<span class="text-[9px] font-bold text-zinc-400">22</span>
+</div>
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+<span class="text-[9px] font-bold text-zinc-400">25</span>
+</div>
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-800"></div>
+<span class="text-[9px] font-bold text-zinc-400">28</span>
+</div>
+<div class="flex flex-col items-center gap-3 flex-shrink-0">
+<div class="w-5 h-5 rounded-full bg-black dark:bg-white flex items-center justify-center ring-4 ring-primary/30">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+</div>
+<span class="text-[9px] font-extrabold text-black dark:text-white uppercase tracking-tighter">Today</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<nav class="border-t border-zinc-100 dark:border-zinc-900 bg-white/95 dark:bg-black/95 backdrop-blur-xl px-8 py-4 pb-10">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<button class="flex flex-col items-center gap-1.5 text-zinc-400">
+<span class="material-symbols-outlined text-[22px]">calendar_today</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Today</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 text-zinc-400">
+<span class="material-symbols-outlined text-[22px]">history</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">History</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 text-black dark:text-white">
+<div class="relative">
+<span class="material-symbols-outlined text-[22px]">trending_up</span>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></div>
+</div>
+<span class="text-[9px] font-bold uppercase tracking-widest">Progress</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 text-zinc-400">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Settings</span>
+</button>
+</div>
+</nav>
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full"></div>
+</div>
+
+</body></html>

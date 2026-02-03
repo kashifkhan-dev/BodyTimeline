@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tracking Zones</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#A3E635", // Light green (Tailwind lime-400)
+                        background: "#FFFFFF",
+                        card: "#FFFFFF",
+                        text: "#000000",
+                        muted: "#71717A",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "16px",
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #A3E635;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #FFFFFF;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .ios-toggle:checked + .toggle-bg {
+            background-color: var(--primary-color);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-white text-black min-h-screen flex justify-center items-center">
+<div class="w-full max-w-[400px] h-[852px] bg-white overflow-hidden relative shadow-2xl md:border-[8px] border-black rounded-[50px] flex flex-col">
+<div class="h-12 w-full flex justify-between items-end px-8 pb-1">
+<span class="text-sm font-semibold">11:11</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[20px]">battery_full</span>
+</div>
+</div>
+<div class="absolute top-3 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-50"></div>
+<div class="flex-1 overflow-y-auto no-scrollbar pb-32">
+<div class="px-6 pt-6 pb-4">
+<button class="mb-4 text-black font-medium flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">arrow_back_ios</span>
+                    Back
+                </button>
+<h1 class="text-3xl font-bold tracking-tight">Tracking Zones</h1>
+<p class="text-zinc-500 text-sm mt-1 uppercase tracking-wider font-semibold">Tracking Configuration</p>
+</div>
+<div class="px-6 mb-8">
+<h2 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 ml-2">TRACKING ZONES</h2>
+<div class="bg-white rounded-3xl overflow-hidden border border-zinc-100 shadow-sm">
+<div class="flex items-center justify-between p-4 border-b border-zinc-50">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-black text-xl">face</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm">Face</h3>
+<p class="text-xs text-zinc-500">Face &amp; neck</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4 border-b border-zinc-50">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-black text-xl">accessibility_new</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm">Body - Front</h3>
+<p class="text-xs text-zinc-500">Front body view</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4 border-b border-zinc-50">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-black text-xl">accessibility</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm">Body - Side</h3>
+<p class="text-xs text-zinc-500">Side body view</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-2xl bg-zinc-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-black text-xl">person</span>
+</div>
+<div>
+<h3 class="font-semibold text-sm">Body - Back</h3>
+<p class="text-xs text-zinc-500">Back body view</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+</div>
+</div>
+<div class="px-6 mb-12">
+<h2 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 ml-2">ADDITIONAL TRACKING</h2>
+<div class="bg-white rounded-3xl overflow-hidden border border-zinc-100 shadow-sm">
+<div class="flex items-center justify-between p-4 border-b border-zinc-50">
+<div class="flex-1">
+<h3 class="font-semibold text-sm">Measurements</h3>
+<p class="text-xs text-zinc-500">Record weight, waist, chest, arms...</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer ml-4">
+<input class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4 border-b border-zinc-50">
+<div class="flex-1">
+<h3 class="font-semibold text-sm">Macronutrients</h3>
+<p class="text-xs text-zinc-500">Record calories, protein, carbs...</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer ml-4">
+<input checked="" class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4">
+<div class="flex-1">
+<h3 class="font-semibold text-sm">Steps</h3>
+<p class="text-xs text-zinc-500">Sync with Apple Health</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer ml-4">
+<input checked="" class="sr-only peer ios-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-zinc-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all toggle-bg"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent pt-12">
+<button class="w-full bg-[var(--primary-color)] text-black font-bold py-4 rounded-2xl shadow-sm transition-transform active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Continue</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-zinc-200 rounded-full"></div>
+</div>
+
+</body></html>

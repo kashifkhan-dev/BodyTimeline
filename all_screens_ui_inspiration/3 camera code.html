@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Camera Capture UI - Progress Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#7C3AED",
+                        "background-light": "#F8F9FA",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .silhouette-guide {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 50% 50% 40% 40% / 40% 40% 60% 60%;
+        }
+        .camera-corner {
+            width: 30px;
+            height: 30px;
+            border-color: white;
+            position: absolute;
+        }
+        .ios-tab-bar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
+<div class="relative h-screen w-full max-w-md mx-auto overflow-hidden bg-black">
+<div class="absolute top-0 left-0 right-0 h-10 flex justify-between px-6 items-center z-50">
+<div class="text-white text-xs font-semibold">11:14</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-white text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-white text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-white text-[18px]">battery_full</span>
+</div>
+</div>
+<div class="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-8 bg-black rounded-3xl z-50 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-orange-500 absolute right-4"></div>
+</div>
+<div class="absolute inset-0 z-0">
+<img alt="Camera Preview" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP7T8FC_MfqAeTaWqqd0_mZ2LqExMdp-rNlLhoToSY8sxNrGmdpVb0LDoKJCxlPWAnXPPi0bcbDYbe3m8k38tEV8bDoiOOtPnmwgJC38WJudSU-DmQxhmVPoljLf7WMDbPCwsew0hBozU4FywZMQXkaDHT2DS6Z4bKmWIWJ8MOkcF1iOZI1Nqa-2u11p_iZqQrnMmhaj2Io39QPCJjftr91YOkSu1lfchlpcsIvSryn1_0_mHrv5VPf68dn9S_pHmbgKtbKK69NrQ"/>
+<img alt="Ghost Overlay" class="absolute inset-0 w-full h-full object-cover opacity-20 grayscale pointer-events-none" id="ghost-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYnXeNndRiUbDT2lV7_o3nNVa7_rLNlPxHhYXkYZHq34FzVhLDZY6TiBH6QffQHS-xtNkDWqEX8WtcRfMgsGLrYBI3aerIySgUICyPcpQFkFMSpLYd-Jo2vHDZEl_g57VlA2nw5RjUgscatQNFeEpkDEpmIe6KAmUG_zufunEehSFy0sdxnp93kCWtf1EST72a7VPfh71CKDI_fAWX4lnFIy6PRifIgh7p8mtYUM-F26UgGOi-epZDniVQZ1L9g6V5IFh8ohONzuQ"/>
+</div>
+<div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 pt-12">
+<button class="flex items-center gap-1 text-white bg-black/30 backdrop-blur-md pl-2 pr-4 py-1.5 rounded-full border border-white/20">
+<span class="material-symbols-outlined text-xl">chevron_left</span>
+<span class="text-sm font-medium">Cancel</span>
+</button>
+<div class="bg-black/30 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+<span class="text-white text-sm font-semibold tracking-wide">Face Photo</span>
+</div>
+<button class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white">
+<span class="material-symbols-outlined">sync</span>
+</button>
+</div>
+<div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+<div class="relative w-72 h-[450px]">
+<div class="camera-corner top-0 left-0 border-t-4 border-l-4"></div>
+<div class="camera-corner top-0 right-0 border-t-4 border-r-4"></div>
+<div class="camera-corner bottom-0 left-0 border-b-4 border-l-4"></div>
+<div class="camera-corner bottom-0 right-0 border-b-4 border-r-4"></div>
+<div class="absolute inset-8 silhouette-guide opacity-40"></div>
+</div>
+</div>
+<div class="absolute bottom-64 left-0 right-0 flex justify-center z-20 px-6">
+<div class="bg-black/40 backdrop-blur-sm px-6 py-2.5 rounded-full text-center">
+<p class="text-white text-sm font-medium">Align face with the guide</p>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 pb-32 pt-8 px-8 z-30 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+<div class="flex items-center justify-between mb-8 px-4">
+<div class="flex gap-2">
+<button class="flex items-center gap-2 bg-white/20 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-bold border border-white/10">
+<span class="material-symbols-outlined text-[16px]">accessibility_new</span>
+                        Guide
+                    </button>
+<button class="flex items-center gap-2 bg-yellow-400 text-slate-900 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+<span class="material-symbols-outlined text-[16px]">layers</span>
+                        Ghost Overlay
+                    </button>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-white text-xs font-bold">46%</span>
+<div class="w-12 h-6 bg-white/30 rounded-full relative p-1 cursor-pointer transition-colors duration-200" id="ghost-toggle">
+<div class="w-4 h-4 bg-white rounded-full translate-x-6 transition-transform shadow-sm" id="toggle-knob"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="w-14 h-14 rounded-xl border-2 border-white/50 overflow-hidden bg-white/10">
+<img alt="Thumbnail" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBc7Cmt4ul2aeUPV8IKwNtILj_NjRfT5KnJHh8nUXa7wzrKRxQVDPbSvzATqudhuziEoeL1-9cIil-oxfFLpkheBmVyraay3X43NeMqPu2LxsiLO39tLNmZWjVLMhdn-4gxu5uRn4Tf2dMIdrb7k7o_hfU-RUU2IcVIJk88wOwbQ3FgzGsrOc0gUPrYhr4VHYvjy6dkzarZetuvS91beUBLR50B3tYCpxnFX4COQfO1F6zkC0wUa-Jijc0SoUIcj90wzUiaRRs9UxU"/>
+</div>
+<div class="relative flex items-center justify-center">
+<div class="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center p-1">
+<button class="w-full h-full bg-white rounded-full active:scale-90 transition-transform shadow-xl"></button>
+</div>
+</div>
+<button class="w-14 h-14 rounded-full flex items-center justify-center text-white bg-white/10 backdrop-blur-md">
+<span class="material-symbols-outlined text-3xl">flip_camera_ios</span>
+</button>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 ios-tab-bar z-50 px-6 pt-3 pb-8 border-t border-white/10">
+<div class="flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-white/50">
+<span class="material-symbols-outlined">today</span>
+<span class="text-[10px] font-medium">Today</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/50">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-medium">History</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">add_a_photo</span>
+<span class="text-[10px] font-bold">Progress</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-white/50">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</div>
+<div class="w-32 h-1.5 bg-white/30 rounded-full mx-auto mt-6"></div>
+</div>
+</div>
+<script>
+        const toggle = document.getElementById('ghost-toggle');
+        const knob = document.getElementById('toggle-knob');
+        const ghost = document.getElementById('ghost-image');
+        toggle.addEventListener('click', () => {
+            const isActive = knob.classList.contains('translate-x-6');
+            if (isActive) {
+                knob.classList.remove('translate-x-6');
+                knob.classList.add('translate-x-0');
+                ghost.style.opacity = '0';
+            } else {
+                knob.classList.add('translate-x-6');
+                knob.classList.remove('translate-x-0');
+                ghost.style.opacity = '0.2';
+            }
+        });
+    </script>
+
+</body></html>

@@ -1,6 +1,4 @@
 import '../entities/workout_day.dart';
-import '../repositories/workout_repository.dart';
-import '../repositories/settings_repository.dart';
 
 abstract class GetTodayWorkout {
   Future<WorkoutDay> call();

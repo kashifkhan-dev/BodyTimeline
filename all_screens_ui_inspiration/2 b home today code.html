@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daily Macronutrients</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#10B981", // Emerald Green
+                        "accent-green": "#D1FAE5",
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#000000",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#1C1C1E",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "12px",
+                        'ios': "24px",
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        :root {
+            --chart-black: #111827;
+            --chart-green-1: #34D399;
+            --chart-green-2: #A7F3D0;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex justify-center">
+<div class="w-full max-w-[430px] min-h-screen bg-background-light dark:bg-background-dark relative flex flex-col pb-24 overflow-x-hidden">
+<div class="flex justify-between items-center px-8 py-3 w-full">
+<span class="text-sm font-semibold">9:41</span>
+<div class="flex items-center gap-1.5">
+<span class="material-icons-round text-[18px]">signal_cellular_alt</span>
+<span class="material-icons-round text-[18px]">wifi</span>
+<span class="material-icons-round text-[22px]">battery_full</span>
+</div>
+</div>
+<div class="px-6 py-4 flex justify-between items-end">
+<div>
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Today</p>
+<h1 class="text-3xl font-bold text-black dark:text-white">Macros</h1>
+</div>
+<button class="w-10 h-10 rounded-full bg-card-light dark:bg-card-dark shadow-sm flex items-center justify-center border border-slate-200/50 dark:border-white/10">
+<span class="material-icons-round text-primary">calendar_today</span>
+</button>
+</div>
+<main class="px-6 space-y-6">
+<div class="bg-card-light dark:bg-card-dark rounded-ios p-6 shadow-sm border border-slate-100 dark:border-white/5">
+<div class="relative flex justify-center items-center h-56">
+<svg class="w-48 h-48 transform -rotate-90">
+<circle class="text-slate-100 dark:text-slate-800" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-width="16"></circle>
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#D1FAE5" stroke-dasharray="502.6" stroke-dashoffset="462.4" stroke-linecap="round" stroke-width="16"></circle>
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#34D399" stroke-dasharray="502.6" stroke-dashoffset="351.8" stroke-linecap="round" stroke-width="16"></circle>
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#111827" stroke-dasharray="502.6" stroke-dashoffset="150.8" stroke-linecap="round" stroke-width="16"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-4xl font-bold text-black dark:text-white">1,420</span>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Calories</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2 mt-4">
+<div class="flex flex-col items-center p-3 rounded-2xl bg-slate-50 dark:bg-white/5">
+<span class="text-[10px] font-bold text-black dark:text-slate-300 uppercase">Protein</span>
+<span class="text-lg font-bold text-black dark:text-white">124<span class="text-[10px] font-normal text-slate-500">g</span></span>
+<div class="w-8 h-1 bg-black dark:bg-white rounded-full mt-1"></div>
+</div>
+<div class="flex flex-col items-center p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/10">
+<span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Carbs</span>
+<span class="text-lg font-bold text-black dark:text-white">185<span class="text-[10px] font-normal text-slate-500">g</span></span>
+<div class="w-8 h-1 bg-emerald-400 rounded-full mt-1"></div>
+</div>
+<div class="flex flex-col items-center p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/10">
+<span class="text-[10px] font-bold text-emerald-500 dark:text-emerald-500 uppercase">Fats</span>
+<span class="text-lg font-bold text-black dark:text-white">42<span class="text-[10px] font-normal text-slate-500">g</span></span>
+<div class="w-8 h-1 bg-emerald-100 dark:bg-emerald-800 rounded-full mt-1"></div>
+</div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold text-black dark:text-white">Recent Meals</h2>
+<button class="text-primary font-semibold text-sm flex items-center gap-1">
+                        View all <span class="material-icons-round text-sm">chevron_right</span>
+</button>
+</div>
+<div class="space-y-3">
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-ios flex items-center gap-4 shadow-sm border border-slate-100 dark:border-white/5">
+<div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Chicken Avocado Salad" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVN52Ppq4yDOjrAah3Cgy2qIaQBheNQ9lFzZAzXPvi4rN_s-lrGELrwH5VA2U7wYMVb1WoZKrmM-zmCDJKKhWmb1Jwl8RnZnU98vYmSdXkqzdclB7RWWL2h7-pL8sNdPuJHr1yY__Qypq-KHEnm73V43YUb04wZvXd4Ir_hF6PPEUUG5g4AToN_2f9MmUsCtappiQdEdINDxmg9kWATqybB9mKhrQ-1mv_4YUhW94DCJLgvgZ0E1RySmD5lpXsGX2R9oV8hhrTBW0"/>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-black dark:text-white leading-tight">Chicken Avocado Salad</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Lunch • 1:30 PM</p>
+<div class="flex gap-2 mt-2">
+<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-black dark:text-white">P: 32g</span>
+<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">C: 12g</span>
+<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-500">F: 18g</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-bold text-lg text-black dark:text-white">450</span>
+<p class="text-[10px] text-slate-400 uppercase font-medium">kcal</p>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-ios flex items-center gap-4 shadow-sm border border-slate-100 dark:border-white/5">
+<div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+<img alt="Oatmeal" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjDQoHmGyAVm0CaTCZtRI_A-7MHX00ZLvb__oD6AzzXy3wtfgxIesMl9XKBD61ibN6KQhDw2Okwz3E8BiGishss2ef90gtgpms5TwIphRRDDRqhjVpo8UlyLunLDj9P9prc_qzfpNHMxlXskITX2_8fUc6yldMuBUtgpEHco5mnLCoaexZFZlgbqtiFalYb3CfcYDHpFqwpWSlmWAIrqddSCmXKGxnA9iIUMYqbQejH_xcVNPki0WAibo7Kfk3xI_OGwUBWhEa9qc"/>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-black dark:text-white leading-tight">Oatmeal with Berries</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Breakfast • 8:15 AM</p>
+<div class="flex gap-2 mt-2">
+<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-black dark:text-white">P: 12g</span>
+<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">C: 54g</span>
+<span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-500">F: 6g</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-bold text-lg text-black dark:text-white">310</span>
+<p class="text-[10px] text-slate-400 uppercase font-medium">kcal</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-4 bg-black dark:bg-emerald-500 text-white dark:text-black rounded-ios font-bold flex items-center justify-center gap-2 shadow-xl hover:opacity-90 transition-opacity">
+<span class="material-icons-round">add</span>
+                    Log New Meal
+                </button>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-black/80 ios-blur border-t border-slate-200 dark:border-slate-800 px-8 pb-8 pt-3 flex justify-between items-center z-50">
+<div class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">today</span>
+<span class="text-[10px] font-medium">Today</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">history</span>
+<span class="text-[10px] font-medium">History</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-black dark:text-emerald-500">
+<span class="material-icons-round">pie_chart</span>
+<span class="text-[10px] font-bold">Macros</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">trending_up</span>
+<span class="text-[10px] font-medium">Progress</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</div>
+</div>
+</div>
+
+</body></html>
