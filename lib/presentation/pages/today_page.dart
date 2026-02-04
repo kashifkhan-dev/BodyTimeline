@@ -8,9 +8,32 @@ import '../../domain/entities/workout_day.dart';
 import '../../domain/value_objects/zone_type.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
+import '../widgets/macro_entry_sheet.dart';
+import '../widgets/measurement_entry_sheet.dart';
 
-class TodayPage extends StatelessWidget {
+enum ActiveSheet { none, macros, measurements }
+
+class TodayPage extends StatefulWidget {
   const TodayPage({super.key});
+
+  @override
+  State<TodayPage> createState() => _TodayPageState();
+}
+
+class _TodayPageState extends State<TodayPage> {
+  ActiveSheet _activeSheet = ActiveSheet.none;
+
+  void _showSheet(ActiveSheet sheet) {
+    setState(() {
+      _activeSheet = sheet;
+    });
+  }
+
+  void _hideSheet() {
+    setState(() {
+      _activeSheet = ActiveSheet.none;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,92 +51,137 @@ class TodayPage extends StatelessWidget {
 
     final completion = today.completionPercentage;
 
-    return CupertinoPageScaffold(
-      backgroundColor: colors.background,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            largeTitle: Text('Today', style: TextStyle(color: colors.textPrimary)),
-            backgroundColor: colors.background.withAlpha(200),
-            border: Border(bottom: BorderSide(color: colors.border)),
-            trailing: _buildProfileAvatar(colors),
+    return Stack(
+      children: [
+        CupertinoPageScaffold(
+          backgroundColor: colors.background,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              CupertinoSliverNavigationBar(
+                largeTitle: Text('Today', style: TextStyle(color: colors.textPrimary)),
+                backgroundColor: colors.background.withAlpha(200),
+                border: Border(bottom: BorderSide(color: colors.border)),
+                trailing: _buildProfileAvatar(colors),
+              ),
+
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: 16),
+                    Text(
+                      _getFormattedLongDate(),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: colors.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                    // 3. Daily Goal Card
+                    _buildDailyGoalCard(context, colors, completion),
+                    const SizedBox(height: 32),
+
+                    // 4. Today’s Tasks Section Header
+                    _buildSectionHeader(
+                      title: 'Today’s Tasks',
+                      subtext: _getTasksRemainingText(today, isTaskOnly: true),
+                      trailingText: 'View All',
+                      colors: colors,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 5. Task Cards List (Photos only)
+                    ...today.activeZones
+                        .where((z) => z != ZoneType.macronutrients && z != ZoneType.measurements)
+                        .map((zone) => _buildTaskCard(context, colors, today, zone)),
+                    const SizedBox(height: 32),
+
+                    // 6. Log Day Section
+                    Text(
+                      'Log Day',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colors.textPrimary),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _showSheet(ActiveSheet.macros),
+                            child: _buildLogCard(
+                              icon: CupertinoIcons.lab_flask,
+                              title: 'Macros',
+                              subtitle: today.isZoneCompleted(ZoneType.macronutrients) ? 'Logged' : 'Pending',
+                              colors: colors,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _showSheet(ActiveSheet.measurements),
+                            child: _buildLogCard(
+                              icon: CupertinoIcons.gauge,
+                              title: 'Measurements',
+                              subtitle: today.isZoneCompleted(ZoneType.measurements) ? 'Recorded' : 'Not recorded',
+                              colors: colors,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 120), // Bottom padding for TabBar and overshoot
+                  ]),
+                ),
+              ),
+            ],
           ),
+        ),
 
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: 16),
-                Text(
-                  _getFormattedLongDate(),
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: colors.textSecondary),
-                ),
-                const SizedBox(height: 16),
-                // 3. Daily Goal Card
-                _buildDailyGoalCard(context, colors, completion),
-                const SizedBox(height: 32),
-
-                // 4. Today’s Tasks Section Header
-                _buildSectionHeader(
-                  title: 'Today’s Tasks',
-                  subtext: _getTasksRemainingText(today, isTaskOnly: true),
-                  trailingText: 'View All',
-                  colors: colors,
-                ),
-                const SizedBox(height: 12),
-
-                // 5. Task Cards List (Photos only)
-                ...today.activeZones
-                    .where((z) => z != ZoneType.macronutrients && z != ZoneType.measurements)
-                    .map((zone) => _buildTaskCard(context, colors, today, zone)),
-                const SizedBox(height: 32),
-
-                // 6. Log Day Section
-                Text(
-                  'Log Day',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colors.textPrimary),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // TODO: Navigate to Macro logging
-                        },
-                        child: _buildLogCard(
-                          icon: CupertinoIcons.lab_flask,
-                          title: 'Macros',
-                          subtitle: today.isZoneCompleted(ZoneType.macronutrients) ? 'Logged' : 'Pending',
-                          colors: colors,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // TODO: Navigate to Measurements
-                        },
-                        child: _buildLogCard(
-                          icon: CupertinoIcons.gauge,
-                          title: 'Measurements',
-                          subtitle: today.isZoneCompleted(ZoneType.measurements) ? 'Recorded' : 'Not recorded',
-                          colors: colors,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 120), // Bottom padding for TabBar
-              ]),
+        // Backdrop for sheet
+        IgnorePointer(
+          ignoring: _activeSheet == ActiveSheet.none,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 400),
+            opacity: _activeSheet == ActiveSheet.none ? 0.0 : 1.0,
+            curve: Curves.easeInOut,
+            child: GestureDetector(
+              onTap: _hideSheet,
+              child: Container(color: CupertinoColors.black.withAlpha(100)),
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Bottom Sheet
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutExpo,
+          left: 0,
+          right: 0,
+          bottom: _activeSheet == ActiveSheet.none ? -MediaQuery.of(context).size.height : 0,
+          child: _buildActiveSheet(),
+        ),
+      ],
     );
+  }
+
+  Widget _buildActiveSheet() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+      child: _buildSheetContent(),
+    );
+  }
+
+  Widget _buildSheetContent() {
+    switch (_activeSheet) {
+      case ActiveSheet.macros:
+        return MacroEntrySheet(key: const ValueKey('macros'), onDismiss: _hideSheet);
+      case ActiveSheet.measurements:
+        return MeasurementEntrySheet(key: const ValueKey('measurements'), onDismiss: _hideSheet);
+      case ActiveSheet.none:
+        return const SizedBox.shrink(key: ValueKey('none'));
+    }
   }
 
   Widget _buildProfileAvatar(AppColors colors) {

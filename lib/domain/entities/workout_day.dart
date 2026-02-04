@@ -28,7 +28,8 @@ class WorkoutDay {
       case ZoneType.measurements:
         return measurements.isNotEmpty;
       case ZoneType.macronutrients:
-        return macros != null;
+        if (macros == null) return false;
+        return macros!.calories > 0 && macros!.protein > 0 && macros!.carbs > 0 && macros!.fat > 0;
     }
   }
 
