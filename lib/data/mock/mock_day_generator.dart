@@ -28,7 +28,7 @@ class MockDayGenerator {
 
       // Enthusiastic at the beginning and later consistency improvement simulation logic could goes here
       // For now, let's just use a high completion chance
-      final completionChance = 0.85;
+      final completionChance = 1.0;
 
       if (roll < completionChance) {
         if (zone == ZoneType.face ||
@@ -59,15 +59,11 @@ class MockDayGenerator {
   static List<WorkoutDay> generateHistory({required int daysToGenerate, required TrackingConfig config}) {
     final history = <WorkoutDay>[];
     final now = DateTime.now();
-    final startDate = now.subtract(Duration(days: daysToGenerate));
+    // Start exactly (daysToGenerate - 1) days ago so that the last day is today
+    final startDate = DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToGenerate - 1));
 
     for (int i = 0; i < daysToGenerate; i++) {
       final date = startDate.add(Duration(days: i));
-
-      // 10% chance to skip a day entirely (missed day)
-      final skip = Random(date.millisecondsSinceEpoch).nextDouble() < 0.1;
-      if (skip) continue;
-
       history.add(generateDay(date: date, config: config, startDate: startDate));
     }
 

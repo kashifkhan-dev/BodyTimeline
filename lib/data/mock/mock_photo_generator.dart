@@ -7,8 +7,10 @@ class MockPhotoGenerator {
     final random = Random(date.millisecondsSinceEpoch + zoneType.index);
     final id = "photo_${date.millisecondsSinceEpoch}_${zoneType.name}";
 
-    // Simulating placeholder paths
-    final path = "assets/mocks/${zoneType.name.toLowerCase()}_${date.day % 5}.jpg";
+    // Use provided transformation images (1.png to 19.png)
+    // We Map the date to one of the 19 images to simulate progress in mock data
+    final dayIndex = (date.day % 19) + 1;
+    final path = "assets/images/transformation/$dayIndex.png";
 
     return PhotoRecord(
       id: id,

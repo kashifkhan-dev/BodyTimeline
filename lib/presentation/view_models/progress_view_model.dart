@@ -30,24 +30,36 @@ class ProgressViewModel extends ChangeNotifier {
   int get currentStreak {
     if (_history.isEmpty) return 0;
 
-    // Sort descending for streak calculation
+    // Sort descending for streak calculation (newest first)
     final sorted = List<WorkoutDay>.from(_history)..sort((a, b) => b.date.compareTo(a.date));
 
     int streak = 0;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    DateTime expectedDate = today;
 
-    for (var i = 0; i < sorted.length; i++) {
-      final dayDate = DateTime(sorted[i].date.year, sorted[i].date.month, sorted[i].date.day);
+    // Check if the latest entry is today or yesterday
+    final latestDate = DateTime(sorted[0].date.year, sorted[0].date.month, sorted[0].date.day);
+    if (latestDate.isBefore(today.subtract(const Duration(days: 1)))) {
+      return 0;
+    }
 
-      // If the first item is not today or yesterday, streak is 0 (or whatever it was)
-      if (i == 0 && dayDate.isBefore(today.subtract(const Duration(days: 1)))) {
-        break;
-      }
+    if (latestDate == today.subtract(const Duration(days: 1))) {
+      expectedDate = latestDate;
+    }
 
-      if (sorted[i].isCompleted) {
-        streak++;
-      } else {
+    for (var day in sorted) {
+      final dayDate = DateTime(day.date.year, day.date.month, day.date.day);
+
+      if (dayDate == expectedDate) {
+        if (day.isCompleted) {
+          streak++;
+          expectedDate = expectedDate.subtract(const Duration(days: 1));
+        } else {
+          break;
+        }
+      } else if (dayDate.isBefore(expectedDate)) {
+        // Gap found
         break;
       }
     }

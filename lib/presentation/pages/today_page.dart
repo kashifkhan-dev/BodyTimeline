@@ -191,10 +191,7 @@ class _TodayPageState extends State<TodayPage> {
       decoration: BoxDecoration(
         color: colors.card,
         shape: BoxShape.circle,
-        image: const DecorationImage(
-          image: NetworkImage('https://i.pravatar.cc/150?u=workout_user'),
-          fit: BoxFit.cover,
-        ),
+        image: const DecorationImage(image: AssetImage('assets/images/transformation/1.png'), fit: BoxFit.cover),
         boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(10), blurRadius: 10, offset: const Offset(0, 4))],
       ),
     );

@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:cupertino_native/cupertino_native.dart';
-import '../../core/theme/color_palette.dart';
 
 class TimelapseOverlay extends StatefulWidget {
   final List<String> images;
@@ -17,28 +15,71 @@ class TimelapseOverlay extends StatefulWidget {
 class _TimelapseOverlayState extends State<TimelapseOverlay> {
   int _currentIndex = 0;
   Timer? _timer;
-  bool _isPlaying = true;
+  bool _isPlaying = false; // Default: Paused
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
+    // Default state: Paused. _startTimer will only run if _isPlaying is true.
   }
 
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
       if (_isPlaying) {
-        setState(() {
-          _currentIndex = (_currentIndex + 1) % widget.images.length;
-        });
+        if (_currentIndex < widget.images.length - 1) {
+          setState(() {
+            _currentIndex++;
+          });
+          _scrollToCurrent();
+        } else {
+          // Finished: Stop on last frame, no loop
+          setState(() {
+            _isPlaying = false;
+          });
+          _timer?.cancel();
+        }
       }
+    });
+  }
+
+  void _scrollToCurrent() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _currentIndex * 60.0, // thumbnail width + padding
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.linear,
+      );
+    }
+  }
+
+  void _onPlayPause() {
+    setState(() {
+      _isPlaying = !_isPlaying;
+      if (_isPlaying) {
+        if (_currentIndex >= widget.images.length - 1) {
+          _currentIndex = 0; // Restart if at end and user clicks play
+        }
+        _startTimer();
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  void _onScrub(int index) {
+    setState(() {
+      _currentIndex = index;
+      _isPlaying = false; // Pause while scrubbing
+      _timer?.cancel();
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -55,25 +96,22 @@ class _TimelapseOverlayState extends State<TimelapseOverlay> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Image Display
+          // Image Display (Centered)
           Center(
             child: AspectRatio(
-              aspectRatio: 3 / 4, // Consistent aspect ratio
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                child: isAsset
-                    ? Image.asset(currentImage, key: ValueKey(currentImage), fit: BoxFit.cover, width: double.infinity)
-                    : Image.file(
-                        File(currentImage),
-                        key: ValueKey(currentImage),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-              ),
+              aspectRatio: 3 / 4,
+              child: isAsset
+                  ? Image.asset(currentImage, key: ValueKey(currentImage), fit: BoxFit.cover, width: double.infinity)
+                  : Image.file(
+                      File(currentImage),
+                      key: ValueKey(currentImage),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
             ),
           ),
 
-          // Top Controls
+          // Top Controls (Close & Position)
           Positioned(
             top: 44,
             left: 20,
@@ -97,14 +135,14 @@ class _TimelapseOverlayState extends State<TimelapseOverlay> {
                     style: const TextStyle(color: CupertinoColors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 28), // Spacer
+                const SizedBox(width: 28),
               ],
             ),
           ),
 
-          // Bottom Info
+          // Bottom Controls (Play/Pause, Timeline, Date)
           Positioned(
-            bottom: 60,
+            bottom: 40,
             left: 0,
             right: 0,
             child: Column(
@@ -113,24 +151,55 @@ class _TimelapseOverlayState extends State<TimelapseOverlay> {
                   '${currentDate.day} ${_getMonthName(currentDate.month)} ${currentDate.year}',
                   style: const TextStyle(color: CupertinoColors.white, fontSize: 18, fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CupertinoButton(
-                      child: Icon(
-                        _isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-                        color: CupertinoColors.white,
-                        size: 44,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPlaying = !_isPlaying;
-                        });
-                      },
-                    ),
-                  ],
+                const SizedBox(height: 24),
+
+                // Play/Pause Button
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _onPlayPause,
+                  child: Icon(
+                    _isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                    color: CupertinoColors.white,
+                    size: 56,
+                  ),
                 ),
+                const SizedBox(height: 24),
+
+                // Horizontal Timeline Grid
+                SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: widget.images.length,
+                    itemBuilder: (context, index) {
+                      final path = widget.images[index];
+                      final isCurrent = index == _currentIndex;
+                      return GestureDetector(
+                        onTap: () => _onScrub(index),
+                        child: Container(
+                          width: 50,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: isCurrent ? const Color(0xFFD0F288) : CupertinoColors.transparent,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: path.startsWith('assets/')
+                                ? Image.asset(path, fit: BoxFit.cover)
+                                : Image.file(File(path), fit: BoxFit.cover),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
