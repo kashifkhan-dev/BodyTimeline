@@ -108,14 +108,14 @@ class HistoryPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFD0F288).withAlpha(100), width: 1.5),
+        border: Border.all(color: colors.primary.withAlpha(40), width: 1.5),
         boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 20, offset: const Offset(0, 10))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
-            Positioned(right: 0, top: 0, bottom: 0, width: 8, child: Container(color: const Color(0xFF10B981))),
+            Positioned(right: 0, top: 0, bottom: 0, width: 8, child: Container(color: colors.success)),
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -123,8 +123,6 @@ class HistoryPage extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Text('🔥', style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
                       Text(
                         'CURRENT STREAK',
                         style: TextStyle(
@@ -176,9 +174,9 @@ class HistoryPage extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildSimpleStat(colors, '🟡', '${vm.activeDaysCount} days active'),
+              _buildSimpleStat(colors, '${vm.activeDaysCount} days active'),
               const SizedBox(width: 16),
-              _buildSimpleStat(colors, '⚪', '${vm.missedDaysCount} days missed'),
+              _buildSimpleStat(colors, '${vm.missedDaysCount} days missed'),
             ],
           ),
         ],
@@ -186,33 +184,52 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSimpleStat(AppColors colors, String emoji, String text) {
+  Widget _buildSimpleStat(AppColors colors, String text) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 10)),
-        const SizedBox(width: 4),
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: text.contains('active') ? colors.success : colors.textMuted.withAlpha(100),
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 6),
         Text(text, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
       ],
     );
   }
 
   Widget _buildNutrientsGrid(HistoryViewModel vm, AppColors colors) {
-    // USING HARD DATA FOR NOW AS REQUESTED
+    final macros = vm.averageMacros;
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: _buildValueCard('AVG CALORIES', '2,140', 'kcal', 'Daily average', colors)),
+            Expanded(
+              child: _buildValueCard(
+                'AVG CALORIES',
+                vm.averageCalories
+                    .toStringAsFixed(0)
+                    .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},'),
+                'kcal',
+                'Daily average',
+                colors,
+              ),
+            ),
             const SizedBox(width: 16),
-            Expanded(child: _buildValueCard('PROTEIN', '164', 'g', 'High intake', colors)),
+            Expanded(
+              child: _buildValueCard('PROTEIN', macros.protein.toStringAsFixed(0), 'g', 'Daily average', colors),
+            ),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildValueCard('CARBS', '210', 'g', 'Target reached', colors)),
+            Expanded(child: _buildValueCard('CARBS', macros.carbs.toStringAsFixed(0), 'g', 'Daily average', colors)),
             const SizedBox(width: 16),
-            Expanded(child: _buildValueCard('FATS', '68', 'g', 'Balanced', colors)),
+            Expanded(child: _buildValueCard('FATS', macros.fat.toStringAsFixed(0), 'g', 'Daily average', colors)),
           ],
         ),
       ],
@@ -299,7 +316,9 @@ class _WeekSelector extends StatelessWidget {
               curve: Curves.easeInOut,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF1B1B1E) : CupertinoColors.transparent,
+                color: isSelected
+                    ? (colors.brightness == Brightness.light ? colors.textPrimary : colors.background)
+                    : CupertinoColors.transparent,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -309,7 +328,9 @@ class _WeekSelector extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: isSelected ? colors.background : colors.textMuted,
+                      color: isSelected
+                          ? (colors.brightness == Brightness.light ? colors.background : colors.textPrimary)
+                          : colors.textMuted,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -318,7 +339,9 @@ class _WeekSelector extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? colors.background : colors.textPrimary,
+                      color: isSelected
+                          ? (colors.brightness == Brightness.light ? colors.background : colors.textPrimary)
+                          : colors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -327,7 +350,9 @@ class _WeekSelector extends StatelessWidget {
                       width: 4,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFD0F288) : const Color(0xFF10B981),
+                        color: isSelected
+                            ? (colors.brightness == Brightness.light ? colors.background : colors.primary)
+                            : colors.success,
                         shape: BoxShape.circle,
                       ),
                     )
@@ -423,7 +448,7 @@ class _DayDetails extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
-              child: Center(child: Text(_getZoneEmoji(zone), style: const TextStyle(fontSize: 20))),
+              child: Center(child: Icon(_getZoneIcon(zone), size: 20, color: colors.textPrimary)),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -443,7 +468,7 @@ class _DayDetails extends StatelessWidget {
             ),
             Icon(
               isCompleted ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.circle,
-              color: isCompleted ? const Color(0xFF10B981) : colors.textMuted,
+              color: isCompleted ? colors.success : colors.textMuted,
               size: 24,
             ),
           ],
@@ -452,20 +477,18 @@ class _DayDetails extends StatelessWidget {
     );
   }
 
-  String _getZoneEmoji(ZoneType zone) {
+  IconData _getZoneIcon(ZoneType zone) {
     switch (zone) {
       case ZoneType.face:
-        return '😊';
+        return CupertinoIcons.person_crop_circle;
       case ZoneType.bodyFront:
-        return '🚶';
       case ZoneType.bodySide:
-        return '🚶‍♂️';
       case ZoneType.bodyBack:
-        return '🚶‍♀️';
+        return CupertinoIcons.person_alt;
       case ZoneType.measurements:
-        return '📏';
+        return CupertinoIcons.gauge;
       case ZoneType.macronutrients:
-        return '🍎';
+        return CupertinoIcons.lab_flask;
     }
   }
 
@@ -611,10 +634,23 @@ class _GithubHeatmap extends StatelessWidget {
   }
 
   Color _getCellColor(double completion) {
-    if (completion <= 0) return const Color(0xFFF3F4F6);
-    if (completion <= 0.3) return const Color(0xFFD1FAE5);
-    if (completion <= 0.6) return const Color(0xFF6EE7B7);
-    if (completion <= 0.9) return const Color(0xFF10B981);
-    return const Color(0xFF047857);
+    if (completion <= 0) {
+      return colors.brightness == Brightness.light ? const Color(0xFFF3F4F6) : colors.surface;
+    }
+
+    if (colors.brightness == Brightness.light) {
+      if (completion < 0.25) return const Color(0xFFD1FAE5);
+      if (completion < 0.50) return const Color(0xFF6EE7B7);
+      if (completion < 0.75) return const Color(0xFF34D399);
+      if (completion < 1.0) return const Color(0xFF10B981);
+      return const Color(0xFF065F46); // 100% is deep success green
+    } else {
+      // Dark mode heatmap colors - deeper depth and glowing emeralds
+      if (completion < 0.25) return colors.primary.withAlpha(40);
+      if (completion < 0.50) return colors.primary.withAlpha(80);
+      if (completion < 0.75) return colors.primary.withAlpha(140);
+      if (completion < 1.0) return colors.primary.withAlpha(200);
+      return colors.primary; // 100% is full glowing primary
+    }
   }
 }

@@ -10,7 +10,14 @@ class InMemoryStore {
 
   final Map<String, WorkoutDay> days = {};
   TrackingConfig currentConfig = const TrackingConfig(
-    enabledZones: {ZoneType.face, ZoneType.bodyFront, ZoneType.measurements},
+    enabledZones: {
+      ZoneType.face,
+      ZoneType.bodyFront,
+      ZoneType.bodySide,
+      ZoneType.bodyBack,
+      ZoneType.measurements,
+      ZoneType.macronutrients,
+    },
   );
 
   String dateToKey(DateTime date) {

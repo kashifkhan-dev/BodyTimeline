@@ -74,22 +74,22 @@ class _CameraView extends StatelessWidget {
               child: const Center(child: CupertinoActivityIndicator(color: CupertinoColors.white)),
             ),
 
-          // Error State
+          // Error State - Temporary solution for Simulator/No Camera
           if (vm.state == CameraState.error)
             Center(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(40),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(CupertinoIcons.exclamationmark_triangle, color: CupertinoColors.systemRed, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      vm.errorMessage ?? 'Unknown error',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: CupertinoColors.white),
-                    ),
+                    const CupertinoActivityIndicator(color: CupertinoColors.white, radius: 14),
                     const SizedBox(height: 24),
+                    const Text(
+                      'Camera unavailable or loading...',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 15),
+                    ),
+                    const SizedBox(height: 32),
                     CNButton(label: 'Close', onPressed: () => Navigator.pop(context)),
                   ],
                 ),

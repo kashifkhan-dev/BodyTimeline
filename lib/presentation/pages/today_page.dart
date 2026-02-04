@@ -11,6 +11,9 @@ import '../../core/theme/color_palette.dart';
 import '../widgets/macro_entry_sheet.dart';
 import '../widgets/measurement_entry_sheet.dart';
 
+import '../../domain/entities/tracking_config.dart';
+import '../view_models/settings_view_model.dart';
+
 enum ActiveSheet { none, macros, measurements }
 
 class TodayPage extends StatefulWidget {
@@ -22,6 +25,9 @@ class TodayPage extends StatefulWidget {
 
 class _TodayPageState extends State<TodayPage> {
   ActiveSheet _activeSheet = ActiveSheet.none;
+
+  // LOCAL STATE FOR UI TESTING: Track completed photo zones locally
+  final Set<ZoneType> _localCompletedZones = {};
 
   void _showSheet(ActiveSheet sheet) {
     setState(() {
@@ -38,18 +44,33 @@ class _TodayPageState extends State<TodayPage> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TodayViewModel>();
+    final settingsVm = context.watch<SettingsViewModel>();
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
     final today = vm.today;
 
-    if (vm.isLoading || today == null) {
+    if (vm.isLoading || today == null || settingsVm.config == null) {
       return Container(
         color: colors.background,
         child: Center(child: CupertinoActivityIndicator(color: colors.primary)),
       );
     }
 
-    final completion = today.completionPercentage;
+    final config = settingsVm.config!;
+    final activePhotoZones = today.activeZones.where((z) {
+      return config.isEnabled(z) && z != ZoneType.macronutrients && z != ZoneType.measurements;
+    }).toList();
+
+    // UI TESTING: Calculate completion based on local state + macros/measurements (only for enabled zones)
+    final enabledZones = today.activeZones.where((z) => config.isEnabled(z)).toList();
+    final int totalZones = enabledZones.length;
+    final int localCompletedCount = enabledZones.where((z) {
+      if (z == ZoneType.macronutrients || z == ZoneType.measurements) {
+        return today.isZoneCompleted(z);
+      }
+      return _localCompletedZones.contains(z);
+    }).length;
+    final completion = totalZones > 0 ? localCompletedCount / totalZones : 1.0;
 
     return Stack(
       children: [
@@ -80,53 +101,56 @@ class _TodayPageState extends State<TodayPage> {
                     const SizedBox(height: 32),
 
                     // 4. Today’s Tasks Section Header
-                    _buildSectionHeader(
-                      title: 'Today’s Tasks',
-                      subtext: _getTasksRemainingText(today, isTaskOnly: true),
-                      trailingText: 'View All',
-                      colors: colors,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 5. Task Cards List (Photos only)
-                    ...today.activeZones
-                        .where((z) => z != ZoneType.macronutrients && z != ZoneType.measurements)
-                        .map((zone) => _buildTaskCard(context, colors, today, zone)),
-                    const SizedBox(height: 32),
+                    if (activePhotoZones.isNotEmpty) ...[
+                      _buildSectionHeader(
+                        title: 'Today’s Tasks',
+                        subtext: _getTasksRemainingText(today, config, isTaskOnly: true),
+                        colors: colors,
+                      ),
+                      const SizedBox(height: 12),
+                      // 5. Task Cards List (Photos only)
+                      ...activePhotoZones.map((zone) => _buildTaskCard(context, colors, today, zone)),
+                      const SizedBox(height: 32),
+                    ],
 
                     // 6. Log Day Section
-                    Text(
-                      'Log Day',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colors.textPrimary),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _showSheet(ActiveSheet.macros),
-                            child: _buildLogCard(
-                              icon: CupertinoIcons.lab_flask,
-                              title: 'Macros',
-                              subtitle: today.isZoneCompleted(ZoneType.macronutrients) ? 'Logged' : 'Pending',
-                              colors: colors,
+                    if (config.isEnabled(ZoneType.macronutrients) || config.isEnabled(ZoneType.measurements)) ...[
+                      Text(
+                        'Log Day',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colors.textPrimary),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          if (config.isEnabled(ZoneType.macronutrients))
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => _showSheet(ActiveSheet.macros),
+                                child: _buildLogCard(
+                                  icon: CupertinoIcons.lab_flask,
+                                  title: 'Macros',
+                                  subtitle: today.isZoneCompleted(ZoneType.macronutrients) ? 'Logged' : 'Pending',
+                                  colors: colors,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _showSheet(ActiveSheet.measurements),
-                            child: _buildLogCard(
-                              icon: CupertinoIcons.gauge,
-                              title: 'Measurements',
-                              subtitle: today.isZoneCompleted(ZoneType.measurements) ? 'Recorded' : 'Not recorded',
-                              colors: colors,
+                          if (config.isEnabled(ZoneType.macronutrients) && config.isEnabled(ZoneType.measurements))
+                            const SizedBox(width: 12),
+                          if (config.isEnabled(ZoneType.measurements))
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => _showSheet(ActiveSheet.measurements),
+                                child: _buildLogCard(
+                                  icon: CupertinoIcons.gauge,
+                                  title: 'Measurements',
+                                  subtitle: today.isZoneCompleted(ZoneType.measurements) ? 'Recorded' : 'Not recorded',
+                                  colors: colors,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
 
                     const SizedBox(height: 120), // Bottom padding for TabBar and overshoot
                   ]),
@@ -262,12 +286,7 @@ class _TodayPageState extends State<TodayPage> {
     );
   }
 
-  Widget _buildSectionHeader({
-    required String title,
-    required String subtext,
-    required String trailingText,
-    required AppColors colors,
-  }) {
+  Widget _buildSectionHeader({required String title, required String subtext, required AppColors colors}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -282,21 +301,13 @@ class _TodayPageState extends State<TodayPage> {
             Text(subtext, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
           ],
         ),
-        Text(
-          trailingText,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
-            decoration: TextDecoration.underline,
-          ),
-        ),
       ],
     );
   }
 
   Widget _buildTaskCard(BuildContext context, AppColors colors, WorkoutDay day, ZoneType zone) {
-    final isCompleted = day.isZoneCompleted(zone);
+    // UI TESTING: Use local state to check completion
+    final isCompleted = _localCompletedZones.contains(zone);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -326,7 +337,9 @@ class _TodayPageState extends State<TodayPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    isCompleted ? 'Captured at 08:30 AM' : _getZoneSubtitle(zone),
+                    isCompleted
+                        ? 'Captured at ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}'
+                        : _getZoneSubtitle(zone),
                     style: TextStyle(fontSize: 13, color: colors.textSecondary),
                   ),
                 ],
@@ -340,7 +353,10 @@ class _TodayPageState extends State<TodayPage> {
                   const SizedBox(width: 8),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    onPressed: () => CameraPage.show(context, zone),
+                    onPressed: () {
+                      // Allow re-taking/opening camera even if completed
+                      CameraPage.show(context, zone);
+                    },
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -357,7 +373,13 @@ class _TodayPageState extends State<TodayPage> {
               CNButton.icon(
                 icon: const CNSymbol('camera.fill', size: 20),
                 size: 60,
-                onPressed: () => CameraPage.show(context, zone),
+                onPressed: () {
+                  // UI TESTING: Mark as complete locally when clicked
+                  setState(() {
+                    _localCompletedZones.add(zone);
+                  });
+                  CameraPage.show(context, zone);
+                },
               ),
           ],
         ),
@@ -458,12 +480,21 @@ class _TodayPageState extends State<TodayPage> {
     }
   }
 
-  String _getTasksRemainingText(WorkoutDay day, {bool isTaskOnly = false}) {
+  String _getTasksRemainingText(WorkoutDay day, TrackingConfig config, {bool isTaskOnly = false}) {
     final zones = isTaskOnly
-        ? day.activeZones.where((z) => z != ZoneType.macronutrients && z != ZoneType.measurements)
-        : day.activeZones;
+        ? day.activeZones.where(
+            (z) => config.isEnabled(z) && z != ZoneType.macronutrients && z != ZoneType.measurements,
+          )
+        : day.activeZones.where((z) => config.isEnabled(z));
+
     final total = zones.length;
-    final completed = zones.where((z) => day.isZoneCompleted(z)).length;
+    // UI TESTING: Use local state for task-only count
+    final completed = zones.where((z) {
+      if (z == ZoneType.macronutrients || z == ZoneType.measurements) {
+        return day.isZoneCompleted(z);
+      }
+      return _localCompletedZones.contains(z);
+    }).length;
     final remaining = total - completed;
     return '$remaining of $total tasks remaining';
   }

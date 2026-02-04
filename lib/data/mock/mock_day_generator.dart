@@ -24,11 +24,17 @@ class MockDayGenerator {
     dynamic macros;
 
     for (final zone in activeZones) {
-      final roll = random.nextDouble();
-
       // Enthusiastic at the beginning and later consistency improvement simulation logic could goes here
-      // For now, let's just use a high completion chance
-      final completionChance = 1.0;
+      // UI TESTING: Introduce variability in completion to show off the heatmap beauty
+      // Newer days have higher consistency than older days
+      final daysAgo = DateTime.now().difference(date).inDays;
+      double bias = 1.0 - (daysAgo / 200.0); // Older days are slightly less consistent
+      bias = bias.clamp(0.4, 0.95);
+
+      // Some days should be completely "off" (rest days or missed days)
+      final isRestDay = (date.weekday == 7 && random.nextDouble() < 0.7); // 70% chance Sunday is off
+      final roll = random.nextDouble();
+      final completionChance = isRestDay ? 0.0 : (bias + (random.nextDouble() * 0.2 - 0.1));
 
       if (roll < completionChance) {
         if (zone == ZoneType.face ||

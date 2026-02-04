@@ -11,13 +11,16 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
   final InMemoryStore _store;
 
   InMemoryWorkoutRepository(this._store) {
-    // Optionally pre-populate if empty
-    if (_store.days.isEmpty) {
-      _prePopulate();
-    }
+    // ALWAYS re-populate in development to ensure any changes in the
+    // MockDayGenerator (like the new variable completion factor)
+    // are applied immediately to the heatmap.
+    _prePopulate();
   }
 
   void _prePopulate() {
+    // Clear existing to avoid weird merges if any exist
+    _store.days.clear();
+
     final history = MockDayGenerator.generateHistory(daysToGenerate: 90, config: _store.currentConfig);
     for (final day in history) {
       _store.days[_store.dateToKey(day.date)] = day;
