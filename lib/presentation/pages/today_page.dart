@@ -333,7 +333,26 @@ class _TodayPageState extends State<TodayPage> {
               ),
             ),
             if (isCompleted)
-              const Icon(CupertinoIcons.checkmark_alt_circle_fill, size: 28, color: CupertinoColors.black)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.checkmark_alt_circle_fill, size: 28, color: CupertinoColors.systemGreen),
+                  const SizedBox(width: 8),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => CameraPage.show(context, zone),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: colors.border),
+                      ),
+                      child: Icon(CupertinoIcons.camera_rotate, size: 18, color: colors.textPrimary),
+                    ),
+                  ),
+                ],
+              )
             else
               CNButton.icon(
                 icon: const CNSymbol('camera.fill', size: 20),

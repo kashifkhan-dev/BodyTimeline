@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
+import 'package:flutter_quick_video_encoder/flutter_quick_video_encoder.dart';
+import 'package:image/image.dart' as img;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -23,9 +23,25 @@ class ProgressPage extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
 
-    // STRICT ORDERING: load images strictly by index 1-19 as requested
-    final photos = List.generate(19, (i) => 'assets/images/transformation/${i + 1}.png');
-    final dates = vm.photoDates;
+    // IMAGE SOURCE SELECTION
+    final List<String> photos;
+    final List<DateTime> dates;
+
+    if (vm.selectedZone == ZoneType.face) {
+      // MANDATORY: 2 images for face transformation in strict order
+      photos = ['assets/images/face/face1.png', 'assets/images/face/face2.png'];
+      // Match dates to the 2 frames
+      final allDates = vm.photoDates;
+      if (allDates.length >= 2) {
+        dates = [allDates.first, allDates.last];
+      } else {
+        dates = allDates;
+      }
+    } else {
+      // Body Front / Default transformation sequence (19 images)
+      photos = List.generate(19, (i) => 'assets/images/transformation/${i + 1}.png');
+      dates = vm.photoDates;
+    }
 
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
@@ -329,21 +345,21 @@ class ProgressPage extends StatelessWidget {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _startExport(context, 'Low (480p)', photos, colors);
+              _startExport(context, 'Low (480p)', photos, colors, 480);
             },
             child: const Text('Low (480p)'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _startExport(context, 'Medium (720p)', photos, colors);
+              _startExport(context, 'Medium (720p)', photos, colors, 720);
             },
             child: const Text('Medium (720p)'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _startExport(context, 'High (1080p)', photos, colors);
+              _startExport(context, 'High (1080p)', photos, colors, 1080);
             },
             child: const Text('High (1080p)'),
           ),
@@ -357,21 +373,28 @@ class ProgressPage extends StatelessWidget {
     );
   }
 
-  void _startExport(BuildContext context, String quality, List<String> photos, AppColors colors) async {
+  void _startExport(BuildContext context, String qualityName, List<String> photos, AppColors colors, int height) async {
     showCupertinoModalPopup(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _ExportProgressOverlay(quality: quality, photos: photos, colors: colors),
+      builder: (context) =>
+          _ExportProgressOverlay(qualityName: qualityName, height: height, photos: photos, colors: colors),
     );
   }
 }
 
 class _ExportProgressOverlay extends StatefulWidget {
-  final String quality;
+  final String qualityName;
+  final int height;
   final List<String> photos;
   final AppColors colors;
 
-  const _ExportProgressOverlay({required this.quality, required this.photos, required this.colors});
+  const _ExportProgressOverlay({
+    required this.qualityName,
+    required this.height,
+    required this.photos,
+    required this.colors,
+  });
 
   @override
   State<_ExportProgressOverlay> createState() => _ExportProgressOverlayState();
@@ -391,7 +414,7 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
 
   Future<void> _runExport() async {
     final int frameCount = widget.photos.length;
-    final int steps = frameCount + 10; // Extra steps for init and final
+    final int steps = frameCount + 5;
     int currentStep = 0;
 
     void update(String status, {double? overrideProgress}) {
@@ -408,76 +431,92 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
       // 1. Permissions (GRACEFUL)
       update('Checking permissions...');
       final status = await Permission.storage.request();
-      if (status.isPermanentlyDenied) {
+      if (!status.isGranted && !status.isLimited) {
         if (mounted) {
           setState(() {
-            _status = 'Storage permission permanently denied. Please enable in Settings.';
+            _status = 'Storage permission required for export.';
             _isDone = true;
           });
         }
-        await openAppSettings();
-        return;
-      }
-      if (!status.isGranted) {
-        setState(() {
-          _status = 'Storage permission required for export.';
-          _isDone = true;
-        });
         return;
       }
 
-      // 2. Prepare Temp Directory
-      update('Preparing workspace...');
-      final tempDir = await getTemporaryDirectory();
-      final exportDir = Directory('${tempDir.path}/export_${DateTime.now().millisecondsSinceEpoch}');
-      await exportDir.create();
-
-      // 3. Extract Assets (MANDATORY for FFmpeg)
-      for (int i = 0; i < frameCount; i++) {
-        update('Processing frame ${i + 1}/$frameCount');
-        final byteData = await rootBundle.load(widget.photos[i]);
-        final bytes = byteData.buffer.asUint8List();
-        final frameFile = File('${exportDir.path}/frame_${(i + 1).toString().padLeft(3, '0')}.png');
-        await frameFile.writeAsBytes(bytes);
-      }
-
-      // 4. Run FFmpeg (REAL MP4)
-      update('Encoding H.264 video...');
+      // 2. Setup Encoder
+      update('Preparing video engine...');
+      final width = (widget.height * 3 / 4).round(); // Aspect ratio 3:4
       final docsDir = await getApplicationDocumentsDirectory();
       final outputPath = '${docsDir.path}/transformation_${DateTime.now().millisecondsSinceEpoch}.mp4';
 
-      // Commands:
-      // -framerate 5: 0.2s per frame
-      // -i frame_%03d.png: sequence input
-      // -c:v libx264: H.264 video
-      // -pix_fmt yuv420p: Compatibility
-      // -y: overwrite
-      final String ffmpegCommand =
-          '-framerate 5 -i ${exportDir.path}/frame_%03d.png -c:v libx264 -pix_fmt yuv420p -y $outputPath';
+      await FlutterQuickVideoEncoder.setup(
+        width: width,
+        height: widget.height,
+        fps: 5,
+        videoBitrate: 2000000,
+        profileLevel: ProfileLevel.highAutoLevel,
+        audioChannels: 0,
+        audioBitrate: 0,
+        sampleRate: 44100,
+        filepath: outputPath,
+      );
 
-      final session = await FFmpegKit.execute(ffmpegCommand);
-      final returnCode = await session.getReturnCode();
+      // 3. Process frames
+      for (int i = 0; i < frameCount; i++) {
+        update('Encoding frame ${i + 1}/$frameCount');
+        final byteData = await rootBundle.load(widget.photos[i]);
+        final bytes = byteData.buffer.asUint8List();
 
-      if (!ReturnCode.isSuccess(returnCode)) {
-        final logs = await session.getLogs();
-        debugPrint('FFmpeg failed: ${logs.join('\n')}');
-        throw Exception('Encoding failed');
+        // Decode using 'image' package
+        final original = img.decodeImage(bytes);
+        if (original == null) throw Exception('Failed to decode frame $i');
+
+        // PRESERVE ASPECT RATIO (Contain / Letterbox logic)
+        // 1. Create a solid black canvas of final video dimensions
+        final frameCanvas = img.Image(width: width, height: widget.height, numChannels: 4);
+        img.fill(frameCanvas, color: img.ColorUint8.rgba(0, 0, 0, 255));
+
+        // 2. Calculate "Contain" dimensions
+        double scale = 1.0;
+        double scaleWidth = width / original.width;
+        double scaleHeight = widget.height / original.height;
+        scale = scaleWidth < scaleHeight ? scaleWidth : scaleHeight;
+
+        int targetWidth = (original.width * scale).round();
+        int targetHeight = (original.height * scale).round();
+
+        // 3. Resize original image
+        final resized = img.copyResize(
+          original,
+          width: targetWidth,
+          height: targetHeight,
+          interpolation: img.Interpolation.linear,
+        );
+
+        // 4. Center-fit onto canvas
+        int offsetX = (width - targetWidth) ~/ 2;
+        int offsetY = (widget.height - targetHeight) ~/ 2;
+
+        img.compositeImage(frameCanvas, resized, dstX: offsetX, dstY: offsetY);
+
+        // Ensure RGBA format for encoder
+        final rgba = frameCanvas.toUint8List();
+
+        await FlutterQuickVideoEncoder.appendVideoFrame(rgba);
       }
 
-      // Verify file exists
-      final outputFile = File(outputPath);
-      if (!await outputFile.exists()) {
-        throw Exception('Exported file not found');
-      }
+      // 4. Finish
+      update('Finalizing MP4 file...');
+      await FlutterQuickVideoEncoder.finish();
 
       _filePath = outputPath;
       update('Export complete!', overrideProgress: 1.0);
 
-      setState(() {
-        _isDone = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isDone = true;
+        });
+      }
 
-      // 5. Open via System Share Sheet (REQUIRED)
+      // 5. Open via System Share Sheet
       // ignore: deprecated_member_use
       await Share.shareXFiles([XFile(_filePath!)], subject: 'My Transformation');
     } catch (e) {
@@ -508,7 +547,7 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Exporting ${widget.quality}',
+                'Exporting ${widget.qualityName}',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

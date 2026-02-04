@@ -18,7 +18,7 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
   }
 
   void _prePopulate() {
-    final history = MockDayGenerator.generateHistory(daysToGenerate: 19, config: _store.currentConfig);
+    final history = MockDayGenerator.generateHistory(daysToGenerate: 90, config: _store.currentConfig);
     for (final day in history) {
       _store.days[_store.dateToKey(day.date)] = day;
     }

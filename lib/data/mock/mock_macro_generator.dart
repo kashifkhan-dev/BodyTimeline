@@ -9,16 +9,17 @@ class MockMacroGenerator {
     const targetCalories = 2200.0;
     const targetProtein = 160.0;
 
-    // Vary calories by +/- 200
+    // Calorie-protein balanced targets
     final calories = targetCalories + (random.nextDouble() * 400 - 200);
-    // Protein stays relatively stable
-    final protein = targetProtein + (random.nextDouble() * 20 - 10);
+    final protein = targetProtein + (random.nextDouble() * 30 - 15);
+    final carbs = 180.0 + (random.nextDouble() * 60 - 30);
+    final fat = 65.0 + (random.nextDouble() * 20 - 10);
 
     return MacroLog(
-      calories: double.parse(calories.toStringAsFixed(0)),
-      protein: double.parse(protein.toStringAsFixed(0)),
-      carbs: 200.0,
-      fat: 70.0,
+      calories: calories.roundToDouble(),
+      protein: protein.roundToDouble(),
+      carbs: carbs.roundToDouble(),
+      fat: fat.roundToDouble(),
     );
   }
 }
