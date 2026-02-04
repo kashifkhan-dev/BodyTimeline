@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:workout/data/datasources/in_memory_store.dart';
 import 'package:workout/data/repositories/in_memory_workout_repository.dart';
 import 'package:workout/domain/value_objects/zone_type.dart';

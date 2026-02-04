@@ -20,9 +20,10 @@ class SettingsPage extends StatelessWidget {
       return Center(child: CupertinoActivityIndicator(color: colors.primary));
     }
 
-    return CupertinoPageScaffold(
+    return Scaffold(
       backgroundColor: colors.background,
-      child: CustomScrollView(
+      body: CustomScrollView(
+        physics: const ClampingScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
             largeTitle: Text('Settings', style: TextStyle(color: colors.textPrimary)),
@@ -33,7 +34,7 @@ class SettingsPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Text(
                   'TRACKING ZONES',
                   style: TextStyle(

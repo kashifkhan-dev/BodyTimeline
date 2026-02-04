@@ -71,7 +71,7 @@ class AppTheme {
       brightness: colors.brightness,
       primaryColor: colors.primary,
       scaffoldBackgroundColor: colors.background,
-      barBackgroundColor: colors.background.withOpacity(0.8),
+      barBackgroundColor: colors.background.withValues(alpha: 0.8),
       textTheme: CupertinoTextThemeData(
         primaryColor: colors.textPrimary,
         textStyle: TextStyle(color: colors.textPrimary, fontFamily: '.SF Pro Text'),

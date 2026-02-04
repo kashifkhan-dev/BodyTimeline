@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:cupertino_native/cupertino_native.dart';
 import 'package:provider/provider.dart';
 import '../view_models/history_view_model.dart';
+import '../../domain/entities/workout_day.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/theme/color_palette.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -48,7 +49,7 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem(BuildContext context, dynamic colors, dynamic day) {
+  Widget _buildHistoryItem(BuildContext context, AppColors colors, WorkoutDay day) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(

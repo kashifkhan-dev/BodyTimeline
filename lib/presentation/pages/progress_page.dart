@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:cupertino_native/cupertino_native.dart';
 import 'package:provider/provider.dart';
 import '../view_models/progress_view_model.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/theme/color_palette.dart';
 
 class ProgressPage extends StatelessWidget {
   const ProgressPage({super.key});
@@ -55,7 +55,7 @@ class ProgressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressSummary(dynamic colors) {
+  Widget _buildProgressSummary(AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -100,7 +100,7 @@ class ProgressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderCard(dynamic colors, String title, String subtitle) {
+  Widget _buildPlaceholderCard(AppColors colors, String title, String subtitle) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
