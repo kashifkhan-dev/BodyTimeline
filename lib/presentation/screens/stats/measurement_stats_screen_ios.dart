@@ -8,6 +8,7 @@ import '../../widgets/scrollable_bar_chart.dart';
 import '../../view_models/stats_view_model.dart';
 import '../../../domain/entities/workout_day.dart';
 import '../../../domain/entities/measurement.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class MeasurementStatsScreenIOS extends StatelessWidget {
   const MeasurementStatsScreenIOS({super.key});
@@ -22,7 +23,7 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('Physical Progress'),
+        middle: Text(AppLocalizations.of(context)!.physicalProgress),
         backgroundColor: colors.background.withAlpha(200),
         border: Border(bottom: BorderSide(color: colors.border)),
       ),
@@ -30,7 +31,11 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           children: [
-            _buildSummaryHeader('Track Your Transformation', 'Physical measurements over time', colors),
+            _buildSummaryHeader(
+              AppLocalizations.of(context)!.trackYourTransformation,
+              AppLocalizations.of(context)!.physicalMeasurementsOverTime,
+              colors,
+            ),
             const SizedBox(height: 32),
 
             ...MeasurementType.values.map(
@@ -39,7 +44,7 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
                 child: ScrollableBarChart(
                   metricType: 'measurement',
                   measurementType: type,
-                  label: _getLabel(type).toUpperCase(),
+                  label: _getLabel(context, type).toUpperCase(),
                   unit: _getUnit(type),
                   colors: colors,
                 ),
@@ -47,13 +52,13 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-            _buildSectionTitle("Today's Measurements", colors),
+            _buildSectionTitle(AppLocalizations.of(context)!.todaysMeasurements, colors),
             const SizedBox(height: 12),
 
             if (today != null && today.measurements.isNotEmpty)
-              _buildTodaySection(today, colors)
+              _buildTodaySection(context, today, colors)
             else
-              _buildEmptyState('No measurements recorded today', colors),
+              _buildEmptyState(AppLocalizations.of(context)!.noMeasurementsLoggedToday, colors),
 
             const SizedBox(height: 80),
           ],
@@ -69,11 +74,11 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildTodaySection(WorkoutDay today, AppColors colors) {
-    return Column(children: today.measurements.map((m) => _buildMeasurementTile(m, colors)).toList());
+  Widget _buildTodaySection(BuildContext context, WorkoutDay today, AppColors colors) {
+    return Column(children: today.measurements.map((m) => _buildMeasurementTile(context, m, colors)).toList());
   }
 
-  Widget _buildMeasurementTile(Measurement m, AppColors colors) {
+  Widget _buildMeasurementTile(BuildContext context, Measurement m, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
@@ -94,7 +99,7 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                _getLabel(m.type),
+                _getLabel(context, m.type),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: colors.textPrimary),
               ),
             ),
@@ -144,26 +149,27 @@ class MeasurementStatsScreenIOS extends StatelessWidget {
     );
   }
 
-  String _getLabel(MeasurementType type) {
+  String _getLabel(BuildContext context, MeasurementType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case MeasurementType.weight:
-        return 'Weight';
+        return l10n.weight;
       case MeasurementType.waist:
-        return 'Waist';
+        return l10n.waist;
       case MeasurementType.chest:
-        return 'Chest';
+        return l10n.chest;
       case MeasurementType.hips:
-        return 'Hips';
+        return l10n.hips;
       case MeasurementType.armLeft:
-        return 'Arm (L)';
+        return l10n.armLeft;
       case MeasurementType.armRight:
-        return 'Arm (R)';
+        return l10n.armRight;
       case MeasurementType.thighLeft:
-        return 'Thigh (L)';
+        return l10n.thighLeft;
       case MeasurementType.thighRight:
-        return 'Thigh (R)';
+        return l10n.thighRight;
       case MeasurementType.neck:
-        return 'Neck';
+        return l10n.neck;
     }
   }
 

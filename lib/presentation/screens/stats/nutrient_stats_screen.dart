@@ -5,6 +5,7 @@ import '../../../core/theme/color_palette.dart';
 import '../../widgets/scrollable_bar_chart.dart';
 import '../../view_models/stats_view_model.dart';
 import '../../../domain/entities/workout_day.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class NutrientStatsScreen extends StatelessWidget {
   const NutrientStatsScreen({super.key});
@@ -19,7 +20,7 @@ class NutrientStatsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Nutrient Statistics'),
+        title: Text(AppLocalizations.of(context)!.nutrientStatistics),
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
         elevation: 0,
@@ -28,23 +29,42 @@ class NutrientStatsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _buildSummaryHeader('Macronutrients', 'Nutritional intake history', colors),
+          _buildSummaryHeader(
+            AppLocalizations.of(context)!.macronutrients,
+            AppLocalizations.of(context)!.nutritionalIntakeHistory,
+            colors,
+          ),
           const SizedBox(height: 32),
-          ScrollableBarChart(metricType: 'calories', label: 'CALORIES', unit: 'kcal', colors: colors),
+          ScrollableBarChart(
+            metricType: 'calories',
+            label: AppLocalizations.of(context)!.avgCalories,
+            unit: 'kcal',
+            colors: colors,
+          ),
           const SizedBox(height: 32),
-          ScrollableBarChart(metricType: 'protein', label: 'PROTEIN', unit: 'g', colors: colors),
+          ScrollableBarChart(
+            metricType: 'protein',
+            label: AppLocalizations.of(context)!.protein,
+            unit: 'g',
+            colors: colors,
+          ),
           const SizedBox(height: 32),
-          ScrollableBarChart(metricType: 'carbs', label: 'CARBS', unit: 'g', colors: colors),
+          ScrollableBarChart(
+            metricType: 'carbs',
+            label: AppLocalizations.of(context)!.carbs,
+            unit: 'g',
+            colors: colors,
+          ),
           const SizedBox(height: 32),
-          ScrollableBarChart(metricType: 'fats', label: 'FATS', unit: 'g', colors: colors),
+          ScrollableBarChart(metricType: 'fats', label: AppLocalizations.of(context)!.fats, unit: 'g', colors: colors),
 
           const SizedBox(height: 32),
-          _buildSectionTitle("Today's Nutrients", colors),
+          _buildSectionTitle(AppLocalizations.of(context)!.todaysNutrients, colors),
           const SizedBox(height: 12),
           if (today != null && today.macros != null)
-            _buildTodayNutrients(today, colors)
+            _buildTodayNutrients(context, today, colors)
           else
-            _buildEmptyState('No nutrients logged today', colors),
+            _buildEmptyState(AppLocalizations.of(context)!.noNutrientsLoggedToday, colors),
 
           const SizedBox(height: 80),
         ],
@@ -59,14 +79,15 @@ class NutrientStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTodayNutrients(WorkoutDay today, AppColors colors) {
+  Widget _buildTodayNutrients(BuildContext context, WorkoutDay today, AppColors colors) {
     final m = today.macros!;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
-        _buildNutrientTile('Calories', m.calories, 'kcal', '🍽️', colors),
-        _buildNutrientTile('Protein', m.protein, 'g', '🥩', colors),
-        _buildNutrientTile('Carbs', m.carbs, 'g', '🍝', colors),
-        _buildNutrientTile('Fats', m.fat, 'g', '🥑', colors),
+        _buildNutrientTile(l10n.calories, m.calories, 'kcal', '🍽️', colors),
+        _buildNutrientTile(l10n.protein, m.protein, 'g', '🥩', colors),
+        _buildNutrientTile(l10n.carbs, m.carbs, 'g', '🍝', colors),
+        _buildNutrientTile(l10n.fats, m.fat, 'g', '🥑', colors),
       ],
     );
   }

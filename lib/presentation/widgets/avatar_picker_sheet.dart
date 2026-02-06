@@ -213,7 +213,13 @@ class _AvatarPickerSheetState extends State<AvatarPickerSheet> {
     if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
     }
-    return Image.file(File(path), fit: BoxFit.cover);
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      },
+    );
   }
 
   Future<void> _handleSave(BuildContext context) async {

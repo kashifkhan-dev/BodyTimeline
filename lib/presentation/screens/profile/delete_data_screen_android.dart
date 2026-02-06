@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../view_models/profile_view_model.dart';
 import '../../view_models/today_view_model.dart';
 import '../../view_models/history_view_model.dart';
@@ -24,8 +26,9 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
   void initState() {
     super.initState();
     _controller.addListener(() {
+      final confirmationWord = AppLocalizations.of(context)!.deleteConfirmation.toLowerCase();
       setState(() {
-        _canDelete = _controller.text.trim().toLowerCase() == 'delete all';
+        _canDelete = _controller.text.trim().toLowerCase() == confirmationWord;
       });
     });
   }
@@ -43,7 +46,7 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Danger Zone'),
+        title: Text(AppLocalizations.of(context)!.dangerZone),
         backgroundColor: colors.background,
         foregroundColor: Colors.red,
         elevation: 0,
@@ -56,21 +59,21 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
             const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 64),
             const SizedBox(height: 24),
             Text(
-              'Reset Application',
+              AppLocalizations.of(context)!.resetApplication,
               style: Theme.of(
                 context,
               ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
             ),
             const SizedBox(height: 16),
             Text(
-              'This will erase all photos, measurement history, and nutritional logs. This action cannot be undone.',
+              AppLocalizations.of(context)!.deleteDataLongWarning,
               style: TextStyle(color: colors.textSecondary, fontSize: 16, height: 1.5),
             ),
             const SizedBox(height: 48),
             TextField(
               controller: _controller,
               decoration: InputDecoration(
-                labelText: 'Type "delete all" to proceed',
+                labelText: AppLocalizations.of(context)!.typeToDelete(AppLocalizations.of(context)!.deleteConfirmation),
                 labelStyle: TextStyle(color: colors.textMuted),
                 filled: true,
                 fillColor: colors.surface,
@@ -96,9 +99,9 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'CONFIRM COMPLETE DELETE',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                child: Text(
+                  AppLocalizations.of(context)!.confirmDelete.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ),
@@ -107,7 +110,7 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'CANCEL',
+                  AppLocalizations.of(context)!.cancel.toUpperCase(),
                   style: TextStyle(color: colors.textSecondary, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -130,7 +133,7 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
       context.read<SettingsViewModel>().loadConfig();
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All data has been cleared.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.allDataCleared)));
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:cupertino_native/cupertino_native.dart';
 import '../view_models/today_view_model.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class MacroEntrySheet extends StatefulWidget {
   final VoidCallback onDismiss;
@@ -80,7 +81,7 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'TODAY',
+                        AppLocalizations.of(context)!.today.toUpperCase(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -89,7 +90,7 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                         ),
                       ),
                       Text(
-                        'Macros',
+                        AppLocalizations.of(context)!.macros,
                         style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: colors.textPrimary),
                       ),
                     ],
@@ -101,24 +102,35 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
               const SizedBox(height: 32),
 
               Text(
-                'Log Entry',
+                AppLocalizations.of(context)!.logEntry,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
               ),
               const SizedBox(height: 16),
 
               Row(
                 children: [
-                  Expanded(child: _buildField('🍽️ Calories', _caloriesController, 'kcal', colors)),
+                  Expanded(
+                    child: _buildField(
+                      '🍽️ ${AppLocalizations.of(context)!.calories}',
+                      _caloriesController,
+                      'kcal',
+                      colors,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildField('🥩 Protein', _proteinController, 'g', colors)),
+                  Expanded(
+                    child: _buildField('🥩 ${AppLocalizations.of(context)!.protein}', _proteinController, 'g', colors),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _buildField('🥔 Carbs', _carbsController, 'g', colors)),
+                  Expanded(
+                    child: _buildField('🥔 ${AppLocalizations.of(context)!.carbs}', _carbsController, 'g', colors),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildField('🧈 Fats', _fatController, 'g', colors)),
+                  Expanded(child: _buildField('🧈 ${AppLocalizations.of(context)!.fats}', _fatController, 'g', colors)),
                 ],
               ),
 
@@ -127,11 +139,11 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
               Row(
                 children: [
                   Expanded(
-                    child: CNButton(label: 'Cancel', onPressed: widget.onDismiss),
+                    child: CNButton(label: AppLocalizations.of(context)!.cancel, onPressed: widget.onDismiss),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: CNButton(label: 'Save Logs', onPressed: _save),
+                    child: CNButton(label: AppLocalizations.of(context)!.saveLogs, onPressed: _save),
                   ),
                 ],
               ),

@@ -1,0 +1,75 @@
+Analyzing workout...                                            
+
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_android.dart:104:35 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_android.dart:123:39 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_android.dart:148:62 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_android.dart:150:62 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_ios.dart:117:41 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_ios.dart:136:45 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_ios.dart:165:60 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/history/history_screen_ios.dart:167:60 • undefined_identifier
+warning • Unused import: '../../../core/theme/color_palette.dart' • lib/presentation/screens/profile/delete_data_screen_android.dart:10:8 • unused_import
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:128:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:129:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:130:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:131:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:132:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:134:21 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:135:28 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_android.dart:135:93 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_ios.dart:126:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_ios.dart:127:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_ios.dart:128:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_ios.dart:129:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_ios.dart:130:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/delete_data_screen_ios.dart:132:21 • use_build_context_synchronously
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/profile/profile_screen_android.dart:54:21 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/profile/profile_screen_android.dart:55:21 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/profile/profile_screen_android.dart:69:21 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/profile/profile_screen_android.dart:70:21 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/profile_screen_android.dart:160:21 • use_build_context_synchronously
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:28:22 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:41:17 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:52:17 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:53:17 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:59:17 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:60:17 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:94:13 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:168:21 • ambiguous_import
+  error • The name 'AppLocalizations' is defined in the libraries 'package:workout/l10n/app_localizations.dart' and 'package:workout/l10n/generated/app_localizations.dart' • lib/presentation/screens/profile/profile_screen_ios.dart:176:23 • ambiguous_import
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/presentation/screens/profile/profile_screen_ios.dart:190:21 • use_build_context_synchronously
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_android.dart:72:40 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_android.dart:81:40 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_android.dart:124:42 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_android.dart:132:42 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_android.dart:275:34 • undefined_identifier
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/progress/progress_screen_android.dart:442:81 • use_build_context_synchronously
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_ios.dart:81:40 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_ios.dart:90:40 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_ios.dart:134:42 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_ios.dart:142:42 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_ios.dart:297:35 • undefined_identifier
+  error • Undefined name 'context' • lib/presentation/screens/progress/progress_screen_ios.dart:301:35 • undefined_identifier
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/progress/progress_screen_ios.dart:468:34 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/progress/progress_screen_ios.dart:486:36 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/progress/progress_screen_ios.dart:512:34 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/progress/progress_screen_ios.dart:515:34 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/progress/progress_screen_ios.dart:522:81 • use_build_context_synchronously
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/settings/language_screen_android.dart:31:13 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/settings/language_screen_android.dart:32:13 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/settings/language_screen_android.dart:40:13 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/screens/settings/language_screen_android.dart:41:13 • deprecated_member_use
+  error • Undefined class 'AppColors' • lib/presentation/screens/settings/language_screen_ios.dart:54:14 • undefined_class
+warning • Unused import: '../../view_models/history_view_model.dart' • lib/presentation/screens/today/today_screen_android.dart:13:8 • unused_import
+warning • Unused import: '../../view_models/progress_view_model.dart' • lib/presentation/screens/today/today_screen_android.dart:14:8 • unused_import
+warning • Unused import: '../../view_models/stats_view_model.dart' • lib/presentation/screens/today/today_screen_android.dart:15:8 • unused_import
+   info • The import of 'package:cupertino_native/components/button.dart' is unnecessary because all of the used elements are also provided by the import of 'package:cupertino_native/cupertino_native.dart' • lib/presentation/screens/today/today_screen_ios.dart:3:8 • unnecessary_import
+   info • The import of 'package:cupertino_native/style/sf_symbol.dart' is unnecessary because all of the used elements are also provided by the import of 'package:cupertino_native/cupertino_native.dart' • lib/presentation/screens/today/today_screen_ios.dart:4:8 • unnecessary_import
+warning • Unused import: '../../view_models/history_view_model.dart' • lib/presentation/screens/today/today_screen_ios.dart:16:8 • unused_import
+warning • Unused import: '../../view_models/progress_view_model.dart' • lib/presentation/screens/today/today_screen_ios.dart:17:8 • unused_import
+warning • Unused import: '../../view_models/stats_view_model.dart' • lib/presentation/screens/today/today_screen_ios.dart:18:8 • unused_import
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/widgets/avatar_picker_sheet.dart:90:13 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/widgets/avatar_picker_sheet.dart:91:13 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/widgets/avatar_picker_sheet.dart:101:13 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre • lib/presentation/widgets/avatar_picker_sheet.dart:102:13 • deprecated_member_use
+

@@ -9,6 +9,7 @@ import '../../../domain/value_objects/measurement_type.dart';
 import '../../../domain/entities/measurement.dart';
 import '../stats/nutrient_stats_screen_ios.dart';
 import '../stats/measurement_stats_screen_ios.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class HistoryScreenIOS extends StatelessWidget {
   const HistoryScreenIOS({super.key});
@@ -19,19 +20,20 @@ class HistoryScreenIOS extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
 
+    final l10n = AppLocalizations.of(context)!;
     final monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      l10n.january,
+      l10n.february,
+      l10n.march,
+      l10n.april,
+      l10n.may,
+      l10n.june,
+      l10n.july,
+      l10n.august,
+      l10n.september,
+      l10n.october,
+      l10n.november,
+      l10n.december,
     ];
     final dateSubtext = '${monthNames[vm.selectedDate.month - 1]} ${vm.selectedDate.year}';
 
@@ -41,7 +43,7 @@ class HistoryScreenIOS extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
-            largeTitle: Text('History', style: TextStyle(color: colors.textPrimary)),
+            largeTitle: Text(AppLocalizations.of(context)!.history, style: TextStyle(color: colors.textPrimary)),
             backgroundColor: colors.background.withAlpha(200),
             border: Border(bottom: BorderSide(color: colors.border)),
           ),
@@ -61,19 +63,19 @@ class HistoryScreenIOS extends StatelessWidget {
                   const SizedBox(height: 32),
                   _DayDetails(vm: vm, colors: colors),
                   const SizedBox(height: 48),
-                  _buildSectionTitle('Streak', colors),
+                  _buildSectionTitle(AppLocalizations.of(context)!.streak, colors),
                   const SizedBox(height: 12),
-                  _buildStreakHero(vm, colors),
+                  _buildStreakHero(context, vm, colors),
                   const SizedBox(height: 32),
-                  _buildSectionTitle('2026 Activity', colors),
+                  _buildSectionTitle('${vm.selectedDate.year} ${AppLocalizations.of(context)!.activitySuffix}', colors),
                   const SizedBox(height: 12),
-                  _buildHeatmapSection(vm, colors, 2026),
+                  _buildHeatmapSection(context, vm, colors, 2026),
                   const SizedBox(height: 32),
-                  _buildSectionTitle('Nutrients Overview', colors),
+                  _buildSectionTitle(AppLocalizations.of(context)!.nutrientsOverview, colors),
                   const SizedBox(height: 12),
                   _buildNutrientsGrid(context, vm, colors),
                   const SizedBox(height: 32),
-                  _buildSectionTitle('Measurements Overview', colors),
+                  _buildSectionTitle(AppLocalizations.of(context)!.measurementsOverview, colors),
                   const SizedBox(height: 12),
                   _buildMeasurementsOverview(context, vm, colors),
                   const SizedBox(height: 120),
@@ -92,7 +94,7 @@ class HistoryScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildStreakHero(HistoryViewModel vm, AppColors colors) {
+  Widget _buildStreakHero(BuildContext context, HistoryViewModel vm, AppColors colors) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -112,7 +114,7 @@ class HistoryScreenIOS extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'CURRENT STREAK',
+                    AppLocalizations.of(context)!.currentStreak,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -131,7 +133,7 @@ class HistoryScreenIOS extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'days',
+                        AppLocalizations.of(context)!.days,
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: colors.textSecondary),
                       ),
                     ],
@@ -145,7 +147,7 @@ class HistoryScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildHeatmapSection(HistoryViewModel vm, AppColors colors, int year) {
+  Widget _buildHeatmapSection(BuildContext context, HistoryViewModel vm, AppColors colors, int year) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -160,9 +162,9 @@ class HistoryScreenIOS extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildSimpleStat(colors, '${vm.activeDaysCount} days active'),
+              _buildSimpleStat(colors, AppLocalizations.of(context)!.daysActive(vm.activeDaysCount)),
               const SizedBox(width: 16),
-              _buildSimpleStat(colors, '${vm.missedDaysCount} days missed'),
+              _buildSimpleStat(colors, AppLocalizations.of(context)!.daysMissed(vm.missedDaysCount)),
             ],
           ),
         ],
@@ -177,7 +179,9 @@ class HistoryScreenIOS extends StatelessWidget {
           width: 6,
           height: 6,
           decoration: BoxDecoration(
-            color: text.contains('active') ? colors.success : colors.textMuted.withAlpha(100),
+            color: text.toLowerCase().contains('active') || text.toLowerCase().contains('activo')
+                ? colors.success
+                : colors.textMuted.withAlpha(100),
             shape: BoxShape.circle,
           ),
         ),
@@ -197,25 +201,47 @@ class HistoryScreenIOS extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildValueCard(
-                  'AVG CALORIES',
+                  AppLocalizations.of(context)!.avgCalories,
                   vm.averageCalories.toStringAsFixed(0),
                   'kcal',
-                  'Daily average',
+                  AppLocalizations.of(context)!.dailyAverage,
                   colors,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildValueCard('PROTEIN', macros.protein.toStringAsFixed(0), 'g', 'Daily average', colors),
+                child: _buildValueCard(
+                  AppLocalizations.of(context)!.protein,
+                  macros.protein.toStringAsFixed(0),
+                  'g',
+                  AppLocalizations.of(context)!.dailyAverage,
+                  colors,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildValueCard('CARBS', macros.carbs.toStringAsFixed(0), 'g', 'Daily average', colors)),
+              Expanded(
+                child: _buildValueCard(
+                  AppLocalizations.of(context)!.carbs,
+                  macros.carbs.toStringAsFixed(0),
+                  'g',
+                  AppLocalizations.of(context)!.dailyAverage,
+                  colors,
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildValueCard('FATS', macros.fat.toStringAsFixed(0), 'g', 'Daily average', colors)),
+              Expanded(
+                child: _buildValueCard(
+                  AppLocalizations.of(context)!.fats,
+                  macros.fat.toStringAsFixed(0),
+                  'g',
+                  AppLocalizations.of(context)!.dailyAverage,
+                  colors,
+                ),
+              ),
             ],
           ),
         ],
@@ -225,7 +251,7 @@ class HistoryScreenIOS extends StatelessWidget {
 
   Widget _buildMeasurementsOverview(BuildContext context, HistoryViewModel vm, AppColors colors) {
     final latest = vm.latestMeasurements;
-    if (latest.isEmpty) return _buildEmptyCard('No measurements recorded yet', colors);
+    if (latest.isEmpty) return _buildEmptyCard(AppLocalizations.of(context)!.noMeasurementsYet, colors);
 
     final entries = latest.entries.toList();
 
@@ -270,7 +296,7 @@ class HistoryScreenIOS extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _getMeasurementLabel(m.type).toUpperCase(),
+                    _getMeasurementLabel(context, m.type).toUpperCase(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -299,33 +325,37 @@ class HistoryScreenIOS extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text('Latest recorded', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+            Text(
+              AppLocalizations.of(context)!.latestRecorded,
+              style: TextStyle(fontSize: 12, color: colors.textSecondary),
+            ),
           ],
         ),
       ),
     );
   }
 
-  String _getMeasurementLabel(MeasurementType type) {
+  String _getMeasurementLabel(BuildContext context, MeasurementType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case MeasurementType.weight:
-        return 'Weight';
+        return l10n.weight;
       case MeasurementType.waist:
-        return 'Waist';
+        return l10n.waist;
       case MeasurementType.chest:
-        return 'Chest';
+        return l10n.chest;
       case MeasurementType.hips:
-        return 'Hips';
+        return l10n.hips;
       case MeasurementType.armLeft:
-        return 'Arm (Left)';
+        return l10n.armLeft;
       case MeasurementType.armRight:
-        return 'Arm (Right)';
+        return l10n.armRight;
       case MeasurementType.thighLeft:
-        return 'Thigh (Left)';
+        return l10n.thighLeft;
       case MeasurementType.thighRight:
-        return 'Thigh (Right)';
+        return l10n.thighRight;
       case MeasurementType.neck:
-        return 'Neck';
+        return l10n.neck;
     }
   }
 
@@ -415,9 +445,10 @@ class _WeekSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final selected = vm.selectedDate;
     final startOfWeek = selected.subtract(Duration(days: selected.weekday - 1));
-    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final dayNames = [l10n.mon, l10n.tue, l10n.wed, l10n.thu, l10n.fri, l10n.sat, l10n.sun];
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -502,7 +533,7 @@ class _DayDetails extends StatelessWidget {
     final now = DateTime.now();
     final isToday =
         vm.selectedDate.day == now.day && vm.selectedDate.month == now.month && vm.selectedDate.year == now.year;
-    final title = isToday ? 'Today' : _formatDate(vm.selectedDate);
+    final title = isToday ? AppLocalizations.of(context)!.today : _formatDate(context, vm.selectedDate);
 
     if (day == null) {
       return Column(
@@ -513,7 +544,7 @@ class _DayDetails extends StatelessWidget {
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
           ),
           const SizedBox(height: 16),
-          _buildEmptyCard('No records for this day', colors),
+          _buildEmptyCard(AppLocalizations.of(context)!.noRecordsDay, colors),
         ],
       );
     }
@@ -529,11 +560,11 @@ class _DayDetails extends StatelessWidget {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
         ),
         Text(
-          '$completedZones of $totalZones zones completed',
+          AppLocalizations.of(context)!.zonesCompleted(completedZones, totalZones),
           style: TextStyle(fontSize: 15, color: colors.textSecondary),
         ),
         const SizedBox(height: 20),
-        ...day.activeZones.map((zone) => _buildTaskDetailCard(day, zone, colors)),
+        ...day.activeZones.map((zone) => _buildTaskDetailCard(context, day, zone, colors)),
       ],
     );
   }
@@ -553,7 +584,7 @@ class _DayDetails extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskDetailCard(WorkoutDay day, ZoneType zone, AppColors colors) {
+  Widget _buildTaskDetailCard(BuildContext context, WorkoutDay day, ZoneType zone, AppColors colors) {
     final isCompleted = day.isZoneCompleted(zone);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -578,11 +609,11 @@ class _DayDetails extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _getZoneLabel(zone),
+                    _getZoneLabel(context, zone),
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: colors.textPrimary),
                   ),
                   Text(
-                    isCompleted ? 'Completed' : 'Pending',
+                    isCompleted ? AppLocalizations.of(context)!.completed : AppLocalizations.of(context)!.pending,
                     style: TextStyle(fontSize: 13, color: colors.textSecondary),
                   ),
                 ],
@@ -614,25 +645,40 @@ class _DayDetails extends StatelessWidget {
     }
   }
 
-  String _getZoneLabel(ZoneType zone) {
+  String _getZoneLabel(BuildContext context, ZoneType zone) {
+    final l10n = AppLocalizations.of(context)!;
     switch (zone) {
       case ZoneType.face:
-        return 'Face';
+        return l10n.facePhoto;
       case ZoneType.bodyFront:
-        return 'Body Front';
+        return l10n.bodyFrontPhoto;
       case ZoneType.bodySide:
-        return 'Body Side';
+        return l10n.bodySidePhoto;
       case ZoneType.bodyBack:
-        return 'Body Back';
+        return l10n.bodyBackPhoto;
       case ZoneType.measurements:
-        return 'Body Measurements';
+        return l10n.bodyMeasurements;
       case ZoneType.macronutrients:
-        return 'Macronutrients';
+        return l10n.macronutrients;
     }
   }
 
-  String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  String _formatDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context)!;
+    final months = [
+      l10n.jan,
+      l10n.feb,
+      l10n.mar,
+      l10n.apr,
+      l10n.may,
+      l10n.jun,
+      l10n.jul,
+      l10n.aug,
+      l10n.sep,
+      l10n.oct,
+      l10n.nov,
+      l10n.dec,
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
@@ -657,11 +703,11 @@ class _GithubHeatmap extends StatelessWidget {
         Column(
           children: [
             const SizedBox(height: 28),
-            _buildDayLabel('M'),
+            _buildDayLabel(AppLocalizations.of(context)!.mon[0]),
             const SizedBox(height: 14),
-            _buildDayLabel('W'),
+            _buildDayLabel(AppLocalizations.of(context)!.wed[0]),
             const SizedBox(height: 14),
-            _buildDayLabel('F'),
+            _buildDayLabel(AppLocalizations.of(context)!.fri[0]),
           ],
         ),
         const SizedBox(width: 10),
@@ -671,7 +717,7 @@ class _GithubHeatmap extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMonthLabels(gridStartDate, weeksCount),
+                _buildMonthLabels(context, gridStartDate, weeksCount),
                 const SizedBox(height: 8),
                 Row(
                   children: List.generate(weeksCount, (wIdx) {
@@ -696,8 +742,22 @@ class _GithubHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildMonthLabels(DateTime gridStartDate, int weeksCount) {
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  Widget _buildMonthLabels(BuildContext context, DateTime gridStartDate, int weeksCount) {
+    final l10n = AppLocalizations.of(context)!;
+    final monthNames = [
+      l10n.jan,
+      l10n.feb,
+      l10n.mar,
+      l10n.apr,
+      l10n.may,
+      l10n.jun,
+      l10n.jul,
+      l10n.aug,
+      l10n.sep,
+      l10n.oct,
+      l10n.nov,
+      l10n.dec,
+    ];
     final List<Widget> labels = [];
     int lastMonth = -1;
     for (int i = 0; i < weeksCount; i++) {

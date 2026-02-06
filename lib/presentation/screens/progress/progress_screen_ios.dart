@@ -15,6 +15,7 @@ import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import '../../../domain/value_objects/zone_type.dart';
 import '../../widgets/timelapse_overlay.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class ProgressScreenIOS extends StatelessWidget {
   const ProgressScreenIOS({super.key});
@@ -43,7 +44,7 @@ class ProgressScreenIOS extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
-            largeTitle: Text('Your Progress', style: TextStyle(color: colors.textPrimary)),
+            largeTitle: Text(AppLocalizations.of(context)!.yourProgress, style: TextStyle(color: colors.textPrimary)),
             backgroundColor: colors.background.withAlpha(200),
             border: Border(bottom: BorderSide(color: colors.border)),
           ),
@@ -56,13 +57,13 @@ class ProgressScreenIOS extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  _buildStatsRow(vm, colors),
+                  _buildStatsRow(context, vm, colors),
                   const SizedBox(height: 24),
-                  _buildZoneSelector(vm, colors),
+                  _buildZoneSelector(context, vm, colors),
                   const SizedBox(height: 32),
                   _buildBeforeAfterSection(context, photos, dates, colors),
                   const SizedBox(height: 32),
-                  _buildTimelineSection(photos, colors),
+                  _buildTimelineSection(context, photos, colors),
                   const SizedBox(height: 120),
                 ]),
               ),
@@ -72,12 +73,12 @@ class ProgressScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(ProgressViewModel vm, AppColors colors) {
+  Widget _buildStatsRow(BuildContext context, ProgressViewModel vm, AppColors colors) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
-            label: 'Current Streak',
+            label: AppLocalizations.of(context)!.streak,
             value: vm.currentStreak.toString(),
             icon: '🔥',
             colors: colors,
@@ -85,7 +86,11 @@ class ProgressScreenIOS extends StatelessWidget {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatCard(label: 'Completed Days', value: vm.totalCompletedDays.toString(), colors: colors),
+          child: _buildStatCard(
+            label: AppLocalizations.of(context)!.completedDays,
+            value: vm.totalCompletedDays.toString(),
+            colors: colors,
+          ),
         ),
       ],
     );
@@ -118,7 +123,7 @@ class ProgressScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildZoneSelector(ProgressViewModel vm, AppColors colors) {
+  Widget _buildZoneSelector(BuildContext context, ProgressViewModel vm, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
@@ -126,7 +131,7 @@ class ProgressScreenIOS extends StatelessWidget {
         children: [
           Expanded(
             child: _buildZoneSegment(
-              label: 'Face',
+              label: AppLocalizations.of(context)!.facePhoto,
               isActive: vm.selectedZone == ZoneType.face,
               onTap: () => vm.setSelectedZone(ZoneType.face),
               colors: colors,
@@ -134,7 +139,7 @@ class ProgressScreenIOS extends StatelessWidget {
           ),
           Expanded(
             child: _buildZoneSegment(
-              label: 'Body Front',
+              label: AppLocalizations.of(context)!.bodyFrontPhoto,
               isActive: vm.selectedZone == ZoneType.bodyFront,
               onTap: () => vm.setSelectedZone(ZoneType.bodyFront),
               colors: colors,
@@ -174,7 +179,7 @@ class ProgressScreenIOS extends StatelessWidget {
   }
 
   Widget _buildBeforeAfterSection(BuildContext context, List<String> photos, List<DateTime> dates, AppColors colors) {
-    if (photos.isEmpty) return _buildEmptyState('No photos captured for this zone.', colors);
+    if (photos.isEmpty) return _buildEmptyState(AppLocalizations.of(context)!.noPhotosZone, colors);
     final beforeImage = photos.first;
     final afterImage = photos.last;
     final beforeDate = dates.first;
@@ -187,10 +192,10 @@ class ProgressScreenIOS extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Before & After',
+              AppLocalizations.of(context)!.beforeAfter,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
             ),
-            Text('View difference', style: TextStyle(fontSize: 14, color: colors.textMuted)),
+            Text(AppLocalizations.of(context)!.viewDifference, style: TextStyle(fontSize: 14, color: colors.textMuted)),
           ],
         ),
         const SizedBox(height: 16),
@@ -205,9 +210,25 @@ class ProgressScreenIOS extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(child: _buildComparisonImage(beforeImage, 'Before', beforeDate, colors)),
+                  Expanded(
+                    child: _buildComparisonImage(
+                      context,
+                      beforeImage,
+                      AppLocalizations.of(context)!.before,
+                      beforeDate,
+                      colors,
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildComparisonImage(afterImage, 'Today', afterDate, colors)),
+                  Expanded(
+                    child: _buildComparisonImage(
+                      context,
+                      afterImage,
+                      AppLocalizations.of(context)!.today,
+                      afterDate,
+                      colors,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -215,7 +236,7 @@ class ProgressScreenIOS extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CNButton(
-                      label: 'Timelapse',
+                      label: AppLocalizations.of(context)!.timelapse,
                       onPressed: () => showCupertinoModalPopup(
                         context: context,
                         builder: (context) => TimelapseOverlay(images: photos, dates: dates),
@@ -225,7 +246,7 @@ class ProgressScreenIOS extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: CNButton(
-                      label: 'Export Video',
+                      label: AppLocalizations.of(context)!.exportVideo,
                       onPressed: () => _showExportOptions(context, photos, colors),
                     ),
                   ),
@@ -238,7 +259,7 @@ class ProgressScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildComparisonImage(String path, String label, DateTime date, AppColors colors) {
+  Widget _buildComparisonImage(BuildContext context, String path, String label, DateTime date, AppColors colors) {
     final isAsset = path.startsWith('assets/');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,12 +277,15 @@ class ProgressScreenIOS extends StatelessWidget {
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colors.textPrimary),
         ),
         const SizedBox(height: 2),
-        Text('${date.day} ${_getMonthName(date.month)}', style: TextStyle(fontSize: 11, color: colors.textSecondary)),
+        Text(
+          '${date.day} ${_getMonthName(context, date.month)}',
+          style: TextStyle(fontSize: 11, color: colors.textSecondary),
+        ),
       ],
     );
   }
 
-  Widget _buildTimelineSection(List<String> photos, AppColors colors) {
+  Widget _buildTimelineSection(BuildContext context, List<String> photos, AppColors colors) {
     if (photos.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,10 +294,13 @@ class ProgressScreenIOS extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Timeline',
+              AppLocalizations.of(context)!.timeline,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
             ),
-            Text('${photos.length} photos', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+            Text(
+              AppLocalizations.of(context)!.photosCount(photos.length),
+              style: TextStyle(fontSize: 14, color: colors.textSecondary),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -318,8 +345,22 @@ class ProgressScreenIOS extends StatelessWidget {
     );
   }
 
-  String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  String _getMonthName(BuildContext context, int month) {
+    final l10n = AppLocalizations.of(context)!;
+    final months = [
+      l10n.jan,
+      l10n.feb,
+      l10n.mar,
+      l10n.apr,
+      l10n.may,
+      l10n.jun,
+      l10n.jul,
+      l10n.aug,
+      l10n.sep,
+      l10n.oct,
+      l10n.nov,
+      l10n.dec,
+    ];
     return months[month - 1];
   }
 
@@ -327,35 +368,35 @@ class ProgressScreenIOS extends StatelessWidget {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('Export Transformation'),
-        message: const Text('Select video quality'),
+        title: Text(AppLocalizations.of(context)!.exportTransformation),
+        message: Text(AppLocalizations.of(context)!.selectVideoQuality),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _startExport(context, 'Low (480p)', photos, colors, 480);
+              _startExport(context, AppLocalizations.of(context)!.lowQuality, photos, colors, 480);
             },
-            child: const Text('Low (480p)'),
+            child: Text(AppLocalizations.of(context)!.lowQuality),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _startExport(context, 'Medium (720p)', photos, colors, 720);
+              _startExport(context, AppLocalizations.of(context)!.mediumQuality, photos, colors, 720);
             },
-            child: const Text('Medium (720p)'),
+            child: Text(AppLocalizations.of(context)!.mediumQuality),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              _startExport(context, 'High (1080p)', photos, colors, 1080);
+              _startExport(context, AppLocalizations.of(context)!.highQuality, photos, colors, 1080);
             },
-            child: const Text('High (1080p)'),
+            child: Text(AppLocalizations.of(context)!.highQuality),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           isDefaultAction: true,
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
       ),
     );
@@ -413,18 +454,18 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
     }
 
     try {
-      update('Checking permissions...');
+      update(AppLocalizations.of(context)!.checkingPermissions);
       final status = await Permission.storage.request();
       if (!status.isGranted && !status.isLimited) {
         if (mounted) {
           setState(() {
-            _status = 'Storage permission required.';
+            _status = AppLocalizations.of(context)!.storagePermissionRequired;
             _isDone = true;
           });
         }
         return;
       }
-      update('Preparing video engine...');
+      update(AppLocalizations.of(context)!.preparingVideoEngine);
       final width = (widget.height * 3 / 4).round();
       final docsDir = await getApplicationDocumentsDirectory();
       final outputPath = '${docsDir.path}/transformation_${DateTime.now().millisecondsSinceEpoch}.mp4';
@@ -442,7 +483,7 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
       );
 
       for (int i = 0; i < frameCount; i++) {
-        update('Encoding frame ${i + 1}/$frameCount');
+        update(AppLocalizations.of(context)!.encodingFrame(i + 1, frameCount));
         final byteData = await rootBundle.load(widget.photos[i]);
         final bytes = byteData.buffer.asUint8List();
         final original = img.decodeImage(bytes);
@@ -468,21 +509,21 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
         );
         await FlutterQuickVideoEncoder.appendVideoFrame(frameCanvas.toUint8List());
       }
-      update('Finalizing MP4 file...');
+      update(AppLocalizations.of(context)!.finalizingVideo);
       await FlutterQuickVideoEncoder.finish();
       _filePath = outputPath;
-      update('Export complete!', overrideProgress: 1.0);
+      update(AppLocalizations.of(context)!.exportComplete, overrideProgress: 1.0);
       if (mounted) {
         setState(() {
           _isDone = true;
         });
       }
       // ignore: deprecated_member_use
-      await Share.shareXFiles([XFile(_filePath!)], subject: 'My Transformation');
+      await Share.shareXFiles([XFile(_filePath!)], subject: AppLocalizations.of(context)!.myTransformation);
     } catch (e) {
       if (mounted) {
         setState(() {
-          _status = 'Export failed: ${e.toString()}';
+          _status = AppLocalizations.of(context)!.exportFailed(e.toString());
           _isDone = true;
         });
       }
@@ -506,7 +547,7 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Exporting ${widget.qualityName}',
+                AppLocalizations.of(context)!.exporting(widget.qualityName),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -528,7 +569,7 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
                 minHeight: 8,
               ),
               const SizedBox(height: 48),
-              if (_isDone) CNButton(label: 'Done', onPressed: () => Navigator.pop(context)),
+              if (_isDone) CNButton(label: AppLocalizations.of(context)!.done, onPressed: () => Navigator.pop(context)),
             ],
           ),
         ),

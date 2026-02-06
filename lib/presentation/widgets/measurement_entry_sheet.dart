@@ -4,6 +4,7 @@ import 'package:cupertino_native/cupertino_native.dart';
 import '../view_models/today_view_model.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../domain/entities/measurement.dart';
 import '../../domain/value_objects/measurement_type.dart';
 
@@ -83,7 +84,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Body Measurements',
+                  AppLocalizations.of(context)!.bodyMeasurements,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
                 ),
                 CupertinoButton(
@@ -99,31 +100,59 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
-                  _buildField('⚖️ Weight', MeasurementType.weight, 'kg', colors),
+                  _buildField('⚖️ ${AppLocalizations.of(context)!.weight}', MeasurementType.weight, 'kg', colors),
                   const SizedBox(height: 16),
-                  _buildField('📏 Waist', MeasurementType.waist, 'cm', colors),
+                  _buildField('📏 ${AppLocalizations.of(context)!.waist}', MeasurementType.waist, 'cm', colors),
                   const SizedBox(height: 16),
-                  _buildField('👕 Chest', MeasurementType.chest, 'cm', colors),
+                  _buildField('👕 ${AppLocalizations.of(context)!.chest}', MeasurementType.chest, 'cm', colors),
                   const SizedBox(height: 16),
-                  _buildField('👖 Hips', MeasurementType.hips, 'cm', colors),
+                  _buildField('👖 ${AppLocalizations.of(context)!.hips}', MeasurementType.hips, 'cm', colors),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildField('💪 Arm (L)', MeasurementType.armLeft, 'cm', colors)),
+                      Expanded(
+                        child: _buildField(
+                          '💪 ${AppLocalizations.of(context)!.armL}',
+                          MeasurementType.armLeft,
+                          'cm',
+                          colors,
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildField('💪 Arm (R)', MeasurementType.armRight, 'cm', colors)),
+                      Expanded(
+                        child: _buildField(
+                          '💪 ${AppLocalizations.of(context)!.armR}',
+                          MeasurementType.armRight,
+                          'cm',
+                          colors,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildField('🦵 Thigh (L)', MeasurementType.thighLeft, 'cm', colors)),
+                      Expanded(
+                        child: _buildField(
+                          '🦵 ${AppLocalizations.of(context)!.thighL}',
+                          MeasurementType.thighLeft,
+                          'cm',
+                          colors,
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildField('🦵 Thigh (R)', MeasurementType.thighRight, 'cm', colors)),
+                      Expanded(
+                        child: _buildField(
+                          '🦵 ${AppLocalizations.of(context)!.thighR}',
+                          MeasurementType.thighRight,
+                          'cm',
+                          colors,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildField('🧣 Neck', MeasurementType.neck, 'cm', colors),
+                  _buildField('🧣 ${AppLocalizations.of(context)!.neck}', MeasurementType.neck, 'cm', colors),
                 ],
               ),
             ),
@@ -131,11 +160,11 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
             Row(
               children: [
                 Expanded(
-                  child: CNButton(label: 'Cancel', onPressed: widget.onDismiss),
+                  child: CNButton(label: AppLocalizations.of(context)!.cancel, onPressed: widget.onDismiss),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: CNButton(label: 'Save All', onPressed: _save),
+                  child: CNButton(label: AppLocalizations.of(context)!.saveAll, onPressed: _save),
                 ),
               ],
             ),

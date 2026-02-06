@@ -20,6 +20,8 @@ import '../../view_models/settings_view_model.dart';
 import '../../view_models/profile_view_model.dart';
 import '../profile/profile_screen.dart';
 import '../profile/delete_data_screen.dart';
+import '../settings/language_screen.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 import 'package:cupertino_native/cupertino_native.dart';
 
 enum ActiveSheet { none, macros, measurements }
@@ -54,6 +56,10 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
 
   void _navigateToDeleteData() {
     Navigator.push(context, CupertinoPageRoute(builder: (context) => const DeleteDataScreen()));
+  }
+
+  void _navigateToLanguage() {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => const LanguageScreen()));
   }
 
   @override
@@ -94,7 +100,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               CupertinoSliverNavigationBar(
-                largeTitle: Text('Today', style: TextStyle(color: colors.textPrimary)),
+                largeTitle: Text(AppLocalizations.of(context)!.today, style: TextStyle(color: colors.textPrimary)),
                 backgroundColor: colors.background.withAlpha(200),
                 border: Border(bottom: BorderSide(color: colors.border)),
                 trailing: _buildProfileAvatar(colors),
@@ -106,7 +112,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 16),
                     Text(
-                      _getFormattedLongDate(),
+                      _getFormattedLongDate(context),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: colors.textSecondary),
                     ),
                     const SizedBox(height: 16),
@@ -115,8 +121,8 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
 
                     if (activePhotoZones.isNotEmpty) ...[
                       _buildSectionHeader(
-                        title: 'Today’s Tasks',
-                        subtext: _getTasksRemainingText(today, config, isTaskOnly: true),
+                        title: AppLocalizations.of(context)!.todaysTasks,
+                        subtext: _getTasksRemainingText(context, today, config, isTaskOnly: true),
                         colors: colors,
                       ),
                       const SizedBox(height: 12),
@@ -126,7 +132,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
 
                     if (config.isEnabled(ZoneType.macronutrients) || config.isEnabled(ZoneType.measurements)) ...[
                       Text(
-                        'Log Day',
+                        AppLocalizations.of(context)!.logDay,
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colors.textPrimary),
                       ),
                       const SizedBox(height: 16),
@@ -138,8 +144,10 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                                 onTap: () => _showSheet(ActiveSheet.macros),
                                 child: _buildLogCard(
                                   icon: CupertinoIcons.lab_flask,
-                                  title: 'Macros',
-                                  subtitle: today.isZoneCompleted(ZoneType.macronutrients) ? 'Logged' : 'Pending',
+                                  title: AppLocalizations.of(context)!.macros,
+                                  subtitle: today.isZoneCompleted(ZoneType.macronutrients)
+                                      ? AppLocalizations.of(context)!.logged
+                                      : AppLocalizations.of(context)!.pending,
                                   colors: colors,
                                 ),
                               ),
@@ -152,8 +160,10 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                                 onTap: () => _showSheet(ActiveSheet.measurements),
                                 child: _buildLogCard(
                                   icon: CupertinoIcons.gauge,
-                                  title: 'Measurements',
-                                  subtitle: today.isZoneCompleted(ZoneType.measurements) ? 'Recorded' : 'Not recorded',
+                                  title: AppLocalizations.of(context)!.measurements,
+                                  subtitle: today.isZoneCompleted(ZoneType.measurements)
+                                      ? AppLocalizations.of(context)!.recorded
+                                      : AppLocalizations.of(context)!.notRecorded,
                                   colors: colors,
                                 ),
                               ),
@@ -228,10 +238,10 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
         decoration: BoxDecoration(
           color: colors.surface,
           shape: BoxShape.circle,
-          image: DecorationImage(image: _provideAvatar(path), fit: BoxFit.cover),
           border: Border.all(color: colors.primary.withAlpha(30), width: 1),
           boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 4, offset: const Offset(0, 2))],
         ),
+        child: ClipOval(child: _buildAvatarImage(path)),
       ),
     );
   }
@@ -240,15 +250,29 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
     showCupertinoModalPopup(
       context: context,
       barrierColor: CupertinoColors.black.withAlpha(20),
-      builder: (context) =>
-          _LiquidGlassMenu(onProfile: _navigateToProfile, onDelete: _navigateToDeleteData, colors: colors),
+      builder: (context) => _LiquidGlassMenu(
+        onProfile: _navigateToProfile,
+        onDelete: _navigateToDeleteData,
+        onLanguage: _navigateToLanguage,
+        colors: colors,
+      ),
     );
   }
 
-  ImageProvider _provideAvatar(String? path) {
-    if (path == null) return const AssetImage('assets/images/transformation/1.png');
-    if (path.startsWith('assets/')) return AssetImage(path);
-    return FileImage(File(path));
+  Widget _buildAvatarImage(String? path) {
+    if (path == null) {
+      return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+    }
+    if (path.startsWith('assets/')) {
+      return Image.asset(path, fit: BoxFit.cover);
+    }
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      },
+    );
   }
 
   Widget _buildDailyGoalCard(BuildContext context, AppColors colors, double percentage) {
@@ -269,7 +293,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'DAILY GOAL',
+                AppLocalizations.of(context)!.dailyGoal,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -281,7 +305,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: lightGreen, borderRadius: BorderRadius.circular(20)),
                 child: Text(
-                  '${(percentage * 100).toInt()}% Done',
+                  '${(percentage * 100).toInt()}% ${AppLocalizations.of(context)!.done}',
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkGreenText),
                 ),
               ),
@@ -289,12 +313,14 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
           ),
           const SizedBox(height: 16),
           Text(
-            percentage >= 1.0 ? 'Great job!' : 'Almost there!',
+            percentage >= 1.0 ? AppLocalizations.of(context)!.greatJob : AppLocalizations.of(context)!.almostThere,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
           ),
           const SizedBox(height: 4),
           Text(
-            percentage >= 1.0 ? 'You have reached your daily goal.' : 'Complete 1 more task to reach your goal.',
+            percentage >= 1.0
+                ? AppLocalizations.of(context)!.dailyGoalReached
+                : AppLocalizations.of(context)!.completeOneMoreTask,
             style: TextStyle(fontSize: 15, color: colors.textSecondary),
           ),
           const SizedBox(height: 20),
@@ -361,14 +387,16 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _getZoneLabel(zone),
+                    _getZoneLabel(context, zone),
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: colors.textPrimary),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     isCompleted
-                        ? 'Captured at ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}'
-                        : _getZoneSubtitle(zone),
+                        ? AppLocalizations.of(context)!.capturedAt(
+                            '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+                          )
+                        : _getZoneSubtitle(context, zone),
                     style: TextStyle(fontSize: 13, color: colors.textSecondary),
                   ),
                 ],
@@ -481,33 +509,40 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
     }
   }
 
-  String _getZoneLabel(ZoneType zone) {
+  String _getZoneLabel(BuildContext context, ZoneType zone) {
+    final l10n = AppLocalizations.of(context)!;
     switch (zone) {
       case ZoneType.face:
-        return 'Face Photo';
+        return l10n.facePhoto;
       case ZoneType.bodyFront:
-        return 'Body Front Photo';
+        return l10n.bodyFrontPhoto;
       case ZoneType.bodySide:
-        return 'Body Side Photo';
+        return l10n.bodySidePhoto;
       case ZoneType.bodyBack:
-        return 'Body Back Photo';
+        return l10n.bodyBackPhoto;
       case ZoneType.measurements:
-        return 'Body Measurements';
+        return l10n.bodyMeasurements;
       case ZoneType.macronutrients:
-        return 'Macronutrients';
+        return l10n.macronutrients;
     }
   }
 
-  String _getZoneSubtitle(ZoneType zone) {
+  String _getZoneSubtitle(BuildContext context, ZoneType zone) {
+    final l10n = AppLocalizations.of(context)!;
     switch (zone) {
       case ZoneType.measurements:
-        return 'Not recorded yet';
+        return l10n.notRecorded;
       default:
-        return 'Pending registration';
+        return l10n.pendingRegistration;
     }
   }
 
-  String _getTasksRemainingText(WorkoutDay day, TrackingConfig config, {bool isTaskOnly = false}) {
+  String _getTasksRemainingText(
+    BuildContext context,
+    WorkoutDay day,
+    TrackingConfig config, {
+    bool isTaskOnly = false,
+  }) {
     final zones = isTaskOnly
         ? day.activeZones.where(
             (z) => config.isEnabled(z) && z != ZoneType.macronutrients && z != ZoneType.measurements,
@@ -522,25 +557,35 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
       return _localCompletedZones.contains(z);
     }).length;
     final remaining = total - completed;
-    return '$remaining of $total tasks remaining';
+
+    return AppLocalizations.of(context)!.tasksRemaining(remaining, total);
   }
 
-  String _getFormattedLongDate() {
+  String _getFormattedLongDate(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    final weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final weekdays = [
+      l10n.monday,
+      l10n.tuesday,
+      l10n.wednesday,
+      l10n.thursday,
+      l10n.friday,
+      l10n.saturday,
+      l10n.sunday,
+    ];
     final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      l10n.january,
+      l10n.february,
+      l10n.march,
+      l10n.april,
+      l10n.may,
+      l10n.june,
+      l10n.july,
+      l10n.august,
+      l10n.september,
+      l10n.october,
+      l10n.november,
+      l10n.december,
     ];
     return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
   }
@@ -549,9 +594,15 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
 class _LiquidGlassMenu extends StatelessWidget {
   final VoidCallback onProfile;
   final VoidCallback onDelete;
+  final VoidCallback onLanguage;
   final AppColors colors;
 
-  const _LiquidGlassMenu({required this.onProfile, required this.onDelete, required this.colors});
+  const _LiquidGlassMenu({
+    required this.onProfile,
+    required this.onDelete,
+    required this.onLanguage,
+    required this.colors,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -577,12 +628,17 @@ class _LiquidGlassMenu extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildItem('Profile', CupertinoIcons.person_circle, () {
+                    _buildItem(AppLocalizations.of(context)!.profile, CupertinoIcons.person_circle, () {
                       Navigator.pop(context);
                       onProfile();
                     }, false),
                     Container(height: 0.5, color: colors.border.withAlpha(80)),
-                    _buildItem('Delete Data', CupertinoIcons.trash, () {
+                    _buildItem(AppLocalizations.of(context)!.language, CupertinoIcons.globe, () {
+                      Navigator.pop(context);
+                      onLanguage();
+                    }, false),
+                    Container(height: 0.5, color: colors.border.withAlpha(80)),
+                    _buildItem(AppLocalizations.of(context)!.deleteData, CupertinoIcons.trash, () {
                       Navigator.pop(context);
                       onDelete();
                     }, true),

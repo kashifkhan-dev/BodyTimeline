@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'package:workout/l10n/generated/app_localizations.dart';
 import '../camera/camera_screen.dart';
 import '../../../domain/entities/workout_day.dart';
 import '../../../domain/value_objects/zone_type.dart';
@@ -17,6 +19,7 @@ import '../../view_models/settings_view_model.dart';
 import '../../view_models/profile_view_model.dart';
 import '../profile/profile_screen.dart';
 import '../profile/delete_data_screen.dart';
+import '../settings/language_screen.dart';
 
 enum ActiveSheet { none, macros, measurements }
 
@@ -45,6 +48,10 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
 
   void _navigateToDeleteData() {
     Navigator.push(context, MaterialPageRoute(builder: (context) => const DeleteDataScreen()));
+  }
+
+  void _navigateToLanguage() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const LanguageScreen()));
   }
 
   Widget _buildSheetContent(ActiveSheet sheet) {
@@ -91,7 +98,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Today'),
+        title: Text(AppLocalizations.of(context)!.today),
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
         elevation: 0,
@@ -104,8 +111,8 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
           children: [
             const SizedBox(height: 16),
             Text(
-              _getFormattedLongDate(),
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: colors.textSecondary),
+              _getFormattedLongDate(context),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: colors.textSecondary),
             ),
             const SizedBox(height: 16),
             _buildDailyGoalCard(context, colors, completion),
@@ -113,8 +120,8 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
 
             if (activePhotoZones.isNotEmpty) ...[
               _buildSectionHeader(
-                title: 'Today’s Tasks',
-                subtext: _getTasksRemainingText(today, config, isTaskOnly: true),
+                title: AppLocalizations.of(context)!.todaysTasks,
+                subtext: _getTasksRemainingText(context, today, config, isTaskOnly: true),
                 colors: colors,
               ),
               const SizedBox(height: 12),
@@ -124,7 +131,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
 
             if (config.isEnabled(ZoneType.macronutrients) || config.isEnabled(ZoneType.measurements)) ...[
               Text(
-                'Log Day',
+                AppLocalizations.of(context)!.logDay,
                 style: Theme.of(
                   context,
                 ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
@@ -139,8 +146,10 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
                         borderRadius: BorderRadius.circular(24),
                         child: _buildLogCard(
                           icon: Icons.restaurant_menu,
-                          title: 'Macros',
-                          subtitle: today.isZoneCompleted(ZoneType.macronutrients) ? 'Logged' : 'Pending',
+                          title: AppLocalizations.of(context)!.macros,
+                          subtitle: today.isZoneCompleted(ZoneType.macronutrients)
+                              ? AppLocalizations.of(context)!.logged
+                              : AppLocalizations.of(context)!.pending,
                           colors: colors,
                         ),
                       ),
@@ -154,8 +163,10 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
                         borderRadius: BorderRadius.circular(24),
                         child: _buildLogCard(
                           icon: Icons.straighten,
-                          title: 'Measurements',
-                          subtitle: today.isZoneCompleted(ZoneType.measurements) ? 'Recorded' : 'Not recorded',
+                          title: AppLocalizations.of(context)!.measurements,
+                          subtitle: today.isZoneCompleted(ZoneType.measurements)
+                              ? AppLocalizations.of(context)!.recorded
+                              : AppLocalizations.of(context)!.notRecorded,
                           colors: colors,
                         ),
                       ),
@@ -183,6 +194,8 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
         if (value == 1) {
           _navigateToProfile();
         } else if (value == 2) {
+          _navigateToLanguage();
+        } else if (value == 3) {
           _navigateToDeleteData();
         }
       },
@@ -191,9 +204,9 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
           value: 1,
           child: Row(
             children: [
-              Icon(Icons.photo_camera_outlined, size: 20, color: colors.textPrimary),
+              Icon(Icons.person_outline, size: 20, color: colors.textPrimary),
               const SizedBox(width: 12),
-              Text('Profile Picture', style: TextStyle(color: colors.textPrimary)),
+              Text(AppLocalizations.of(context)!.profile, style: TextStyle(color: colors.textPrimary)),
             ],
           ),
         ),
@@ -201,11 +214,21 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
           value: 2,
           child: Row(
             children: [
+              Icon(Icons.language_outlined, size: 20, color: colors.textPrimary),
+              const SizedBox(width: 12),
+              Text(AppLocalizations.of(context)!.language, style: TextStyle(color: colors.textPrimary)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 3,
+          child: Row(
+            children: [
               const Icon(Icons.delete_outline, size: 20, color: Colors.red),
               const SizedBox(width: 12),
-              const Text(
-                'Delete Data',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.deleteData,
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -214,21 +237,38 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
       child: CircleAvatar(
         radius: 20,
         backgroundColor: colors.surface,
-        backgroundImage: _provideAvatar(path),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colors.primary.withAlpha(40), width: 1),
+        child: ClipOval(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildAvatarImage(path),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: colors.primary.withAlpha(40), width: 1),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  ImageProvider _provideAvatar(String? path) {
-    if (path == null) return const AssetImage('assets/images/transformation/1.png');
-    if (path.startsWith('assets/')) return AssetImage(path);
-    return FileImage(File(path));
+  Widget _buildAvatarImage(String? path) {
+    if (path == null) {
+      return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+    }
+    if (path.startsWith('assets/')) {
+      return Image.asset(path, fit: BoxFit.cover);
+    }
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      },
+    );
   }
 
   Widget _buildDailyGoalCard(BuildContext context, AppColors colors, double percentage) {
@@ -248,19 +288,18 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'DAILY GOAL',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  AppLocalizations.of(context)!.dailyGoal,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: colors.textMuted,
-                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(color: lightGreen, borderRadius: BorderRadius.circular(20)),
                   child: Text(
-                    '${(percentage * 100).toInt()}% Done',
+                    '${(percentage * 100).toInt()}% ${AppLocalizations.of(context)!.done}',
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkGreenText),
                   ),
                 ),
@@ -268,13 +307,17 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
             ),
             const SizedBox(height: 16),
             Text(
-              percentage >= 1.0 ? 'Great job!' : 'Almost there!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
+              percentage >= 1.0 ? AppLocalizations.of(context)!.greatJob : AppLocalizations.of(context)!.almostThere,
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
             ),
             const SizedBox(height: 4),
             Text(
-              percentage >= 1.0 ? 'You have reached your daily goal.' : 'Complete 1 more task to reach your goal.',
-              style: TextStyle(fontSize: 15, color: colors.textSecondary),
+              percentage >= 1.0
+                  ? AppLocalizations.of(context)!.dailyGoalReached
+                  : AppLocalizations.of(context)!.completeOneMoreTask,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colors.textSecondary),
             ),
             const SizedBox(height: 20),
             LinearProgressIndicator(
@@ -328,14 +371,18 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
           child: Icon(_getZoneIcon(zone), size: 24, color: colors.textPrimary),
         ),
         title: Text(
-          _getZoneLabel(zone),
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: colors.textPrimary),
+          _getZoneLabel(context, zone),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
         ),
         subtitle: Text(
           isCompleted
-              ? 'Captured at ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}'
-              : _getZoneSubtitle(zone),
-          style: TextStyle(fontSize: 13, color: colors.textSecondary),
+              ? AppLocalizations.of(context)!.capturedAt(
+                  '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+                )
+              : _getZoneSubtitle(context, zone),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
         ),
         trailing: isCompleted
             ? Row(
@@ -407,33 +454,40 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
     }
   }
 
-  String _getZoneLabel(ZoneType zone) {
+  String _getZoneLabel(BuildContext context, ZoneType zone) {
+    final l10n = AppLocalizations.of(context)!;
     switch (zone) {
       case ZoneType.face:
-        return 'Face Photo';
+        return l10n.facePhoto;
       case ZoneType.bodyFront:
-        return 'Body Front Photo';
+        return l10n.bodyFrontPhoto;
       case ZoneType.bodySide:
-        return 'Body Side Photo';
+        return l10n.bodySidePhoto;
       case ZoneType.bodyBack:
-        return 'Body Back Photo';
+        return l10n.bodyBackPhoto;
       case ZoneType.measurements:
-        return 'Body Measurements';
+        return l10n.bodyMeasurements;
       case ZoneType.macronutrients:
-        return 'Macronutrients';
+        return l10n.macronutrients;
     }
   }
 
-  String _getZoneSubtitle(ZoneType zone) {
+  String _getZoneSubtitle(BuildContext context, ZoneType zone) {
+    final l10n = AppLocalizations.of(context)!;
     switch (zone) {
       case ZoneType.measurements:
-        return 'Not recorded yet';
+        return l10n.notRecorded;
       default:
-        return 'Pending registration';
+        return l10n.pendingRegistration;
     }
   }
 
-  String _getTasksRemainingText(WorkoutDay day, TrackingConfig config, {bool isTaskOnly = false}) {
+  String _getTasksRemainingText(
+    BuildContext context,
+    WorkoutDay day,
+    TrackingConfig config, {
+    bool isTaskOnly = false,
+  }) {
     final zones = isTaskOnly
         ? day.activeZones.where(
             (z) => config.isEnabled(z) && z != ZoneType.macronutrients && z != ZoneType.measurements,
@@ -448,25 +502,35 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
       return _localCompletedZones.contains(z);
     }).length;
     final remaining = total - completed;
-    return '$remaining of $total tasks remaining';
+
+    return AppLocalizations.of(context)!.tasksRemaining(remaining, total);
   }
 
-  String _getFormattedLongDate() {
+  String _getFormattedLongDate(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    final weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final weekdays = [
+      l10n.monday,
+      l10n.tuesday,
+      l10n.wednesday,
+      l10n.thursday,
+      l10n.friday,
+      l10n.saturday,
+      l10n.sunday,
+    ];
     final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      l10n.january,
+      l10n.february,
+      l10n.march,
+      l10n.april,
+      l10n.may,
+      l10n.june,
+      l10n.july,
+      l10n.august,
+      l10n.september,
+      l10n.october,
+      l10n.november,
+      l10n.december,
     ];
     return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
   }

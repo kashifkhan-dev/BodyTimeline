@@ -12,6 +12,7 @@ import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import '../../../domain/value_objects/zone_type.dart';
 import '../../widgets/timelapse_overlay.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class ProgressScreenAndroid extends StatelessWidget {
   const ProgressScreenAndroid({super.key});
@@ -37,7 +38,7 @@ class ProgressScreenAndroid extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Your Progress'),
+        title: Text(AppLocalizations.of(context)!.yourProgress),
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
         elevation: 0,
@@ -49,13 +50,13 @@ class ProgressScreenAndroid extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 children: [
-                  _buildStatsRow(vm, colors),
+                  _buildStatsRow(context, vm, colors),
                   const SizedBox(height: 24),
-                  _buildZoneSelector(vm, colors),
+                  _buildZoneSelector(context, vm, colors),
                   const SizedBox(height: 32),
                   _buildBeforeAfterSection(context, photos, dates, colors),
                   const SizedBox(height: 32),
-                  _buildTimelineSection(photos, colors),
+                  _buildTimelineSection(context, photos, colors),
                   const SizedBox(height: 120),
                 ],
               ),
@@ -63,15 +64,24 @@ class ProgressScreenAndroid extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(ProgressViewModel vm, AppColors colors) {
+  Widget _buildStatsRow(BuildContext context, ProgressViewModel vm, AppColors colors) {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(label: 'Streak', value: vm.currentStreak.toString(), icon: '🔥', colors: colors),
+          child: _buildStatCard(
+            label: AppLocalizations.of(context)!.streak,
+            value: vm.currentStreak.toString(),
+            icon: '🔥',
+            colors: colors,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatCard(label: 'Total Days', value: vm.totalCompletedDays.toString(), colors: colors),
+          child: _buildStatCard(
+            label: AppLocalizations.of(context)!.totalDays,
+            value: vm.totalCompletedDays.toString(),
+            colors: colors,
+          ),
         ),
       ],
     );
@@ -104,14 +114,14 @@ class ProgressScreenAndroid extends StatelessWidget {
     );
   }
 
-  Widget _buildZoneSelector(ProgressViewModel vm, AppColors colors) {
+  Widget _buildZoneSelector(BuildContext context, ProgressViewModel vm, AppColors colors) {
     return Container(
       decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
           Expanded(
             child: _buildZoneSegment(
-              label: 'Face',
+              label: AppLocalizations.of(context)!.facePhoto,
               isActive: vm.selectedZone == ZoneType.face,
               onTap: () => vm.setSelectedZone(ZoneType.face),
               colors: colors,
@@ -119,7 +129,7 @@ class ProgressScreenAndroid extends StatelessWidget {
           ),
           Expanded(
             child: _buildZoneSegment(
-              label: 'Body',
+              label: AppLocalizations.of(context)!.body,
               isActive: vm.selectedZone == ZoneType.bodyFront,
               onTap: () => vm.setSelectedZone(ZoneType.bodyFront),
               colors: colors,
@@ -160,7 +170,7 @@ class ProgressScreenAndroid extends StatelessWidget {
   }
 
   Widget _buildBeforeAfterSection(BuildContext context, List<String> photos, List<DateTime> dates, AppColors colors) {
-    if (photos.isEmpty) return const Center(child: Text('No photos recorded'));
+    if (photos.isEmpty) return Center(child: Text(AppLocalizations.of(context)!.noRecords));
     final beforeImage = photos.first;
     final afterImage = photos.last;
 
@@ -168,7 +178,7 @@ class ProgressScreenAndroid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Before & After',
+          AppLocalizations.of(context)!.beforeAfter,
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
@@ -184,9 +194,25 @@ class ProgressScreenAndroid extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _buildComparisonImage(beforeImage, 'Before', dates.first, colors)),
+                    Expanded(
+                      child: _buildComparisonImage(
+                        context,
+                        beforeImage,
+                        AppLocalizations.of(context)!.before,
+                        dates.first,
+                        colors,
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildComparisonImage(afterImage, 'After', dates.last, colors)),
+                    Expanded(
+                      child: _buildComparisonImage(
+                        context,
+                        afterImage,
+                        AppLocalizations.of(context)!.after,
+                        dates.last,
+                        colors,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -201,7 +227,7 @@ class ProgressScreenAndroid extends StatelessWidget {
                           builder: (context) => TimelapseOverlay(images: photos, dates: dates),
                         ),
                         icon: const Icon(Icons.slow_motion_video),
-                        label: const Text('Timelapse'),
+                        label: Text(AppLocalizations.of(context)!.timelapse),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -209,7 +235,7 @@ class ProgressScreenAndroid extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: () => _showExportOptions(context, photos, colors),
                         icon: const Icon(Icons.file_upload),
-                        label: const Text('Export'),
+                        label: Text(AppLocalizations.of(context)!.export),
                         style: ElevatedButton.styleFrom(backgroundColor: colors.primary, foregroundColor: Colors.white),
                       ),
                     ),
@@ -223,7 +249,7 @@ class ProgressScreenAndroid extends StatelessWidget {
     );
   }
 
-  Widget _buildComparisonImage(String path, String label, DateTime date, AppColors colors) {
+  Widget _buildComparisonImage(BuildContext context, String path, String label, DateTime date, AppColors colors) {
     final isAsset = path.startsWith('assets/');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,11 +268,11 @@ class ProgressScreenAndroid extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineSection(List<String> photos, AppColors colors) {
+  Widget _buildTimelineSection(BuildContext context, List<String> photos, AppColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Timeline', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(AppLocalizations.of(context)!.timeline, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         GridView.builder(
           shrinkWrap: true,
@@ -280,28 +306,31 @@ class ProgressScreenAndroid extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(
-              title: Text('Export Quality', style: TextStyle(fontWeight: FontWeight.bold)),
+            ListTile(
+              title: Text(
+                AppLocalizations.of(context)!.exportQuality,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             ListTile(
-              title: const Text('Low (480p)'),
+              title: Text(AppLocalizations.of(context)!.lowQuality),
               onTap: () {
                 Navigator.pop(context);
-                _startExport(context, '480p', photos, colors, 480);
+                _startExport(context, AppLocalizations.of(context)!.lowQuality, photos, colors, 480);
               },
             ),
             ListTile(
-              title: const Text('Medium (720p)'),
+              title: Text(AppLocalizations.of(context)!.mediumQuality),
               onTap: () {
                 Navigator.pop(context);
-                _startExport(context, '720p', photos, colors, 720);
+                _startExport(context, AppLocalizations.of(context)!.mediumQuality, photos, colors, 720);
               },
             ),
             ListTile(
-              title: const Text('High (1080p)'),
+              title: Text(AppLocalizations.of(context)!.highQuality),
               onTap: () {
                 Navigator.pop(context);
-                _startExport(context, '1080p', photos, colors, 1080);
+                _startExport(context, AppLocalizations.of(context)!.highQuality, photos, colors, 1080);
               },
             ),
             const SizedBox(height: 16),
@@ -346,7 +375,15 @@ class _ExportProgressOverlayAndroidState extends State<_ExportProgressOverlayAnd
   @override
   void initState() {
     super.initState();
-    _runExport();
+    // Use addPostFrameCallback to access context safely after first build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _status = AppLocalizations.of(context)!.initializing;
+        });
+        _runExport();
+      }
+    });
   }
 
   Future<void> _runExport() async {
@@ -371,7 +408,7 @@ class _ExportProgressOverlayAndroidState extends State<_ExportProgressOverlayAnd
       for (int i = 0; i < frameCount; i++) {
         if (mounted) {
           setState(() {
-            _status = 'Processing ${i + 1}/$frameCount';
+            _status = AppLocalizations.of(context)!.processing(i + 1, frameCount);
             _progress = i / frameCount;
           });
         }
@@ -394,18 +431,19 @@ class _ExportProgressOverlayAndroidState extends State<_ExportProgressOverlayAnd
       _filePath = outputPath;
       if (mounted) {
         setState(() {
-          _status = 'Complete!';
+          _status = AppLocalizations.of(context)!.exportComplete;
           _progress = 1.0;
           _isDone = true;
         });
       }
       // ignore: deprecated_member_use
       // ignore: deprecated_member_use
-      await Share.shareXFiles([XFile(_filePath!)], subject: 'My Transformation');
+      // ignore: deprecated_member_use
+      await Share.shareXFiles([XFile(_filePath!)], subject: AppLocalizations.of(context)!.myTransformation);
     } catch (e) {
       if (mounted) {
         setState(() {
-          _status = 'Error: $e';
+          _status = AppLocalizations.of(context)!.exportFailed(e.toString());
           _isDone = true;
         });
       }
@@ -425,13 +463,17 @@ class _ExportProgressOverlayAndroidState extends State<_ExportProgressOverlayAnd
               CircularProgressIndicator(value: _progress, color: widget.colors.primary),
               const SizedBox(height: 32),
               Text(
-                'Exporting ${widget.qualityName}',
+                AppLocalizations.of(context)!.exporting(widget.qualityName),
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(_status),
               const SizedBox(height: 48),
-              if (_isDone) ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Dismiss')),
+              if (_isDone)
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(AppLocalizations.of(context)!.dismiss),
+                ),
             ],
           ),
         ),

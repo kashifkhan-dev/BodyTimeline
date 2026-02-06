@@ -27,6 +27,13 @@ import 'data/repositories/in_memory_user_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'presentation/view_models/profile_view_model.dart';
 
+// Localization
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
+import 'data/repositories/prefs_locale_repository.dart';
+import 'domain/repositories/locale_repository.dart';
+import 'presentation/view_models/locale_view_model.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
@@ -38,6 +45,7 @@ void main() async {
   final workoutRepo = InMemoryWorkoutRepository(store);
   final settingsRepo = InMemorySettingsRepository(store);
   final userRepo = InMemoryUserRepository(prefs);
+  final localeRepo = PrefsLocaleRepository();
 
   // Load Persisted Theme
   final initialThemeMode = await ThemePersistence.loadThemeMode();
@@ -52,6 +60,7 @@ void main() async {
         Provider<WorkoutRepository>.value(value: workoutRepo),
         Provider<SettingsRepository>.value(value: settingsRepo),
         Provider<UserRepository>.value(value: userRepo),
+        Provider<LocaleRepository>.value(value: localeRepo),
 
         // ViewModel Injection
         ChangeNotifierProvider(create: (_) => SettingsViewModel(settingsRepo)),
@@ -60,6 +69,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ProgressViewModel(workoutRepo)),
         ChangeNotifierProvider(create: (context) => StatsViewModel(workoutRepo)),
         ChangeNotifierProvider(create: (context) => ProfileViewModel(userRepo, workoutRepo, settingsRepo)),
+        ChangeNotifierProvider(create: (_) => LocaleViewModel(localeRepo)),
       ],
       child: const WorkoutApp(),
     ),
@@ -72,12 +82,21 @@ class WorkoutApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final localeProvider = context.watch<LocaleViewModel>();
 
     if (Platform.isIOS) {
       return CupertinoApp(
         title: 'Workout',
         debugShowCheckedModeBanner: false,
         theme: themeProvider.cupertinoTheme(context),
+        locale: localeProvider.locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en'), Locale('es')],
         home: const MainShell(),
       );
     } else {
@@ -85,8 +104,16 @@ class WorkoutApp extends StatelessWidget {
         title: 'Workout',
         debugShowCheckedModeBanner: false,
         theme: themeProvider.materialTheme(context),
-        darkTheme: themeProvider.materialTheme(context), // themeData handles both based on brightness
+        darkTheme: themeProvider.materialTheme(context),
         themeMode: themeProvider.themeMode,
+        locale: localeProvider.locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en'), Locale('es')],
         home: const MainShell(),
       );
     }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'package:workout/l10n/generated/app_localizations.dart';
+import '../../view_models/locale_view_model.dart';
+import '../../../domain/entities/app_language.dart';
 import '../../view_models/settings_view_model.dart';
 import '../../../domain/value_objects/zone_type.dart';
 import '../../../core/theme/theme_provider.dart';
@@ -25,7 +29,7 @@ class SettingsScreenAndroid extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(AppLocalizations.of(context)!.settings),
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
         elevation: 0,
@@ -34,21 +38,30 @@ class SettingsScreenAndroid extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           const SizedBox(height: 24),
-          _buildHeader('Tracking Zones', colors),
+          _buildHeader(AppLocalizations.of(context)!.trackingZones, colors),
           const SizedBox(height: 12),
-          _buildZoneTile(context, colors, vm, ZoneType.face, 'Face', '👤'),
-          _buildZoneTile(context, colors, vm, ZoneType.bodyFront, 'Body Front', '🧍'),
-          _buildZoneTile(context, colors, vm, ZoneType.bodySide, 'Body Side', '🧍‍♂️'),
-          _buildZoneTile(context, colors, vm, ZoneType.bodyBack, 'Body Back', '🧍‍♀️'),
+          _buildZoneTile(context, colors, vm, ZoneType.face, AppLocalizations.of(context)!.face, '👤'),
+          _buildZoneTile(context, colors, vm, ZoneType.bodyFront, AppLocalizations.of(context)!.bodyFront, '🧍'),
+          _buildZoneTile(context, colors, vm, ZoneType.bodySide, AppLocalizations.of(context)!.bodySide, '🧍‍♂️'),
+          _buildZoneTile(context, colors, vm, ZoneType.bodyBack, AppLocalizations.of(context)!.bodyBack, '🧍‍♀️'),
           const SizedBox(height: 32),
-          _buildHeader('Additional Tracking', colors),
+          _buildHeader(AppLocalizations.of(context)!.additionalTracking, colors),
           const SizedBox(height: 12),
-          _buildZoneTile(context, colors, vm, ZoneType.measurements, 'Measurements', '📏'),
-          _buildZoneTile(context, colors, vm, ZoneType.macronutrients, 'Macronutrients', '🍎'),
+          _buildZoneTile(context, colors, vm, ZoneType.measurements, AppLocalizations.of(context)!.measurements, '📏'),
+          _buildZoneTile(
+            context,
+            colors,
+            vm,
+            ZoneType.macronutrients,
+            AppLocalizations.of(context)!.macronutrients,
+            '🍎',
+          ),
           const SizedBox(height: 32),
-          _buildHeader('Appearance', colors),
+          _buildHeader(AppLocalizations.of(context)!.appearance, colors),
           const SizedBox(height: 12),
           _buildThemeToggle(context, colors, theme),
+          const SizedBox(height: 12),
+          _buildLanguageTile(context, colors),
           const SizedBox(height: 120),
         ],
       ),
@@ -118,7 +131,7 @@ class SettingsScreenAndroid extends StatelessWidget {
           child: Icon(isDark ? Icons.brightness_3 : Icons.brightness_7, color: colors.textPrimary, size: 20),
         ),
         title: Text(
-          'Dark Mode',
+          AppLocalizations.of(context)!.darkMode,
           style: TextStyle(fontSize: 17, color: colors.textPrimary, fontWeight: FontWeight.w500),
         ),
         value: isDark,
@@ -128,6 +141,66 @@ class SettingsScreenAndroid extends StatelessWidget {
         inactiveTrackColor: colors.surface,
         inactiveThumbColor: colors.textMuted,
         trackOutlineColor: WidgetStateProperty.all(colors.border),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(BuildContext context, AppColors colors) {
+    return Card(
+      elevation: 0,
+      color: colors.card,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: colors.border),
+      ),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        onTap: () => _showLanguageDialog(context),
+        leading: CircleAvatar(
+          backgroundColor: colors.surface,
+          child: const Text('🌍', style: TextStyle(fontSize: 20)),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.language,
+          style: TextStyle(fontSize: 17, color: colors.textPrimary, fontWeight: FontWeight.w500),
+        ),
+        trailing: Text(
+          'Change',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colors.primary),
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    final localeVm = context.read<LocaleViewModel>();
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(AppLocalizations.of(context)!.language),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              localeVm.setLanguage(AppLanguage.english);
+              Navigator.pop(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(AppLocalizations.of(context)!.english),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              localeVm.setLanguage(AppLanguage.spanish);
+              Navigator.pop(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(AppLocalizations.of(context)!.spanish),
+            ),
+          ),
+        ],
       ),
     );
   }

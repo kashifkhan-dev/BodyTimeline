@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../view_models/profile_view_model.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class ProfileScreenIOS extends StatefulWidget {
   const ProfileScreenIOS({super.key});
@@ -23,7 +24,7 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Profile', style: TextStyle(color: colors.textPrimary)),
+        middle: Text(AppLocalizations.of(context)!.profile, style: TextStyle(color: colors.textPrimary)),
         backgroundColor: colors.background.withAlpha(200),
         border: Border(bottom: BorderSide(color: colors.border)),
       ),
@@ -33,10 +34,10 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildAvatarPreview(colors),
+              _buildAvatarPreview(context, colors),
               const SizedBox(height: 40),
               Text(
-                'CHANGE AVATAR',
+                AppLocalizations.of(context)!.changeAvatar,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -45,9 +46,19 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
                 ),
               ),
               const SizedBox(height: 12),
-              _buildIOSOption(0, 'Latest Progress Image', 'Use your most recent front body photo', colors),
+              _buildIOSOption(
+                0,
+                AppLocalizations.of(context)!.latestProgressImage,
+                AppLocalizations.of(context)!.useRecentFrontPhoto,
+                colors,
+              ),
               const SizedBox(height: 12),
-              _buildIOSOption(1, 'Choose from Gallery', 'Pick an image from your device', colors),
+              _buildIOSOption(
+                1,
+                AppLocalizations.of(context)!.chooseFromGallery,
+                AppLocalizations.of(context)!.pickImageFromDevice,
+                colors,
+              ),
               const SizedBox(height: 48),
               _buildActionButtons(context, colors),
             ],
@@ -57,7 +68,7 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
     );
   }
 
-  Widget _buildAvatarPreview(AppColors colors) {
+  Widget _buildAvatarPreview(BuildContext context, AppColors colors) {
     final vm = context.watch<ProfileViewModel>();
     final path = vm.avatarPath;
 
@@ -79,7 +90,7 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Preview',
+            AppLocalizations.of(context)!.preview,
             style: TextStyle(color: colors.textSecondary, fontSize: 15, fontWeight: FontWeight.w500),
           ),
         ],
@@ -94,7 +105,13 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
     if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
     }
-    return Image.file(File(path), fit: BoxFit.cover);
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      },
+    );
   }
 
   Widget _buildIOSOption(int index, String title, String subtitle, AppColors colors) {
@@ -152,16 +169,16 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
             onPressed: vm.isLoading ? null : () => _handleSave(context),
             child: vm.isLoading
                 ? const CupertinoActivityIndicator(color: CupertinoColors.white)
-                : const Text(
-                    'Update Profile Picture',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),
+                : Text(
+                    AppLocalizations.of(context)!.updateProfilePicture,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),
                   ),
           ),
         ),
         const SizedBox(height: 16),
         CupertinoButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: colors.textMuted)),
+          child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: colors.textMuted)),
         ),
       ],
     );

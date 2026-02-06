@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../view_models/profile_view_model.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
@@ -23,7 +25,7 @@ class _ProfileScreenAndroidState extends State<ProfileScreenAndroid> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Profile Settings'),
+        title: Text(AppLocalizations.of(context)!.profileSettings),
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
         elevation: 0,
@@ -36,7 +38,7 @@ class _ProfileScreenAndroidState extends State<ProfileScreenAndroid> {
             _buildAvatarPreview(colors),
             const SizedBox(height: 40),
             Text(
-              'Avatar Selection',
+              AppLocalizations.of(context)!.avatarSelection,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
@@ -53,10 +55,13 @@ class _ProfileScreenAndroidState extends State<ProfileScreenAndroid> {
                     groupValue: _selectedOption,
                     onChanged: (v) => setState(() => _selectedOption = v!),
                     title: Text(
-                      'Latest Progress Image',
+                      AppLocalizations.of(context)!.latestProgressImage,
                       style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
                     ),
-                    subtitle: Text('Syncs with your latest body photo', style: TextStyle(color: colors.textSecondary)),
+                    subtitle: Text(
+                      AppLocalizations.of(context)!.syncsWithLatestBodyPhoto,
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
                     activeColor: colors.primary,
                   ),
                   const Divider(indent: 16, endIndent: 16),
@@ -65,10 +70,13 @@ class _ProfileScreenAndroidState extends State<ProfileScreenAndroid> {
                     groupValue: _selectedOption,
                     onChanged: (v) => setState(() => _selectedOption = v!),
                     title: Text(
-                      'Gallery Selection',
+                      AppLocalizations.of(context)!.chooseFromGallery,
                       style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
                     ),
-                    subtitle: Text('Upload a custom picture', style: TextStyle(color: colors.textSecondary)),
+                    subtitle: Text(
+                      AppLocalizations.of(context)!.uploadCustomPicture,
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
                     activeColor: colors.primary,
                   ),
                 ],
@@ -88,9 +96,9 @@ class _ProfileScreenAndroidState extends State<ProfileScreenAndroid> {
                 ),
                 child: vm.isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'SAVE PROFILE CHANGES',
-                        style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                    : Text(
+                        AppLocalizations.of(context)!.saveProfileChanges.toUpperCase(),
+                        style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
                       ),
               ),
             ),
@@ -139,7 +147,13 @@ class _ProfileScreenAndroidState extends State<ProfileScreenAndroid> {
     if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
     }
-    return Image.file(File(path), fit: BoxFit.cover);
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      },
+    );
   }
 
   Future<void> _handleSave(BuildContext context) async {

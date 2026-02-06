@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+
+import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import '../../widgets/scrollable_bar_chart.dart';
@@ -19,7 +21,7 @@ class NutrientStatsScreenIOS extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('Nutrient Statistics'),
+        middle: Text(AppLocalizations.of(context)!.nutrientStatistics),
         backgroundColor: colors.background.withAlpha(200),
         border: Border(bottom: BorderSide(color: colors.border)),
       ),
@@ -27,23 +29,47 @@ class NutrientStatsScreenIOS extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           children: [
-            _buildSummaryHeader('Macronutrients', 'Nutritional intake history', colors),
+            _buildSummaryHeader(
+              AppLocalizations.of(context)!.macronutrients,
+              AppLocalizations.of(context)!.nutritionalIntakeHistory,
+              colors,
+            ),
             const SizedBox(height: 32),
-            ScrollableBarChart(metricType: 'calories', label: 'CALORIES', unit: 'kcal', colors: colors),
+            ScrollableBarChart(
+              metricType: 'calories',
+              label: AppLocalizations.of(context)!.avgCalories,
+              unit: 'kcal',
+              colors: colors,
+            ),
             const SizedBox(height: 32),
-            ScrollableBarChart(metricType: 'protein', label: 'PROTEIN', unit: 'g', colors: colors),
+            ScrollableBarChart(
+              metricType: 'protein',
+              label: AppLocalizations.of(context)!.protein,
+              unit: 'g',
+              colors: colors,
+            ),
             const SizedBox(height: 32),
-            ScrollableBarChart(metricType: 'carbs', label: 'CARBS', unit: 'g', colors: colors),
+            ScrollableBarChart(
+              metricType: 'carbs',
+              label: AppLocalizations.of(context)!.carbs,
+              unit: 'g',
+              colors: colors,
+            ),
             const SizedBox(height: 32),
-            ScrollableBarChart(metricType: 'fats', label: 'FATS', unit: 'g', colors: colors),
+            ScrollableBarChart(
+              metricType: 'fats',
+              label: AppLocalizations.of(context)!.fats,
+              unit: 'g',
+              colors: colors,
+            ),
 
             const SizedBox(height: 32),
-            _buildSectionTitle("Today's Nutrients", colors),
+            _buildSectionTitle(AppLocalizations.of(context)!.todaysNutrients, colors),
             const SizedBox(height: 12),
             if (today != null && today.macros != null)
-              _buildTodayNutrients(today, colors)
+              _buildTodayNutrients(context, today, colors)
             else
-              _buildEmptyState('No nutrients logged today', colors),
+              _buildEmptyState(AppLocalizations.of(context)!.noNutrientsLoggedToday, colors),
 
             const SizedBox(height: 80),
           ],
@@ -59,14 +85,15 @@ class NutrientStatsScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildTodayNutrients(WorkoutDay today, AppColors colors) {
+  Widget _buildTodayNutrients(BuildContext context, WorkoutDay today, AppColors colors) {
     final m = today.macros!;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
-        _buildNutrientTile('Calories', m.calories, 'kcal', '🍽️', colors),
-        _buildNutrientTile('Protein', m.protein, 'g', '🥩', colors),
-        _buildNutrientTile('Carbs', m.carbs, 'g', '🍝', colors),
-        _buildNutrientTile('Fats', m.fat, 'g', '🥑', colors),
+        _buildNutrientTile(l10n.calories, m.calories, 'kcal', '🍽️', colors),
+        _buildNutrientTile(l10n.protein, m.protein, 'g', '🥩', colors),
+        _buildNutrientTile(l10n.carbs, m.carbs, 'g', '🍝', colors),
+        _buildNutrientTile(l10n.fats, m.fat, 'g', '🥑', colors),
       ],
     );
   }
