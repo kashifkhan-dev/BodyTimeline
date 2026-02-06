@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../camera/camera_screen.dart';
-import '../../view_models/today_view_model.dart';
 import '../../../domain/entities/workout_day.dart';
 import '../../../domain/value_objects/zone_type.dart';
 import '../../../core/theme/theme_provider.dart';
@@ -9,7 +9,14 @@ import '../../../core/theme/color_palette.dart';
 import '../../widgets/macro_entry_sheet.dart';
 import '../../widgets/measurement_entry_sheet.dart';
 import '../../../domain/entities/tracking_config.dart';
+import '../../view_models/today_view_model.dart';
+import '../../view_models/history_view_model.dart';
+import '../../view_models/progress_view_model.dart';
+import '../../view_models/stats_view_model.dart';
 import '../../view_models/settings_view_model.dart';
+import '../../view_models/profile_view_model.dart';
+import '../profile/profile_screen.dart';
+import '../profile/delete_data_screen.dart';
 
 enum ActiveSheet { none, macros, measurements }
 
@@ -30,6 +37,14 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
       backgroundColor: Colors.transparent,
       builder: (context) => _buildSheetContent(sheet),
     );
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+  }
+
+  void _navigateToDeleteData() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const DeleteDataScreen()));
   }
 
   Widget _buildSheetContent(ActiveSheet sheet) {
@@ -156,11 +171,64 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
   }
 
   Widget _buildProfileAvatar(AppColors colors) {
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: colors.card,
-      backgroundImage: const AssetImage('assets/images/transformation/1.png'),
+    final profileVm = context.watch<ProfileViewModel>();
+    final path = profileVm.avatarPath;
+
+    return PopupMenuButton<int>(
+      offset: const Offset(0, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: colors.background,
+      elevation: 8,
+      onSelected: (value) {
+        if (value == 1) {
+          _navigateToProfile();
+        } else if (value == 2) {
+          _navigateToDeleteData();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 1,
+          child: Row(
+            children: [
+              Icon(Icons.photo_camera_outlined, size: 20, color: colors.textPrimary),
+              const SizedBox(width: 12),
+              Text('Profile Picture', style: TextStyle(color: colors.textPrimary)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 2,
+          child: Row(
+            children: [
+              const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+              const SizedBox(width: 12),
+              const Text(
+                'Delete Data',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: CircleAvatar(
+        radius: 20,
+        backgroundColor: colors.surface,
+        backgroundImage: _provideAvatar(path),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: colors.primary.withAlpha(40), width: 1),
+          ),
+        ),
+      ),
     );
+  }
+
+  ImageProvider _provideAvatar(String? path) {
+    if (path == null) return const AssetImage('assets/images/transformation/1.png');
+    if (path.startsWith('assets/')) return AssetImage(path);
+    return FileImage(File(path));
   }
 
   Widget _buildDailyGoalCard(BuildContext context, AppColors colors, double percentage) {
@@ -248,8 +316,10 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
       elevation: 0,
       color: colors.card,
       margin: const EdgeInsets.symmetric(vertical: 6),
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         contentPadding: const EdgeInsets.all(16),
         leading: Container(
           width: 48,

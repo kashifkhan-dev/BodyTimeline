@@ -11,4 +11,5 @@ abstract class WorkoutRepository {
   Future<void> saveMeasurements(DateTime date, List<Measurement> measurements);
   Future<void> saveMacros(DateTime date, MacroLog macros);
   Future<PhotoRecord?> getLatestPhoto(DateTime before, ZoneType zoneType);
+  Future<void> deleteAllData();
 }

@@ -75,11 +75,13 @@ class SettingsScreenAndroid extends StatelessWidget {
       elevation: 0,
       color: colors.card,
       margin: const EdgeInsets.symmetric(vertical: 4),
+      clipBehavior: Clip.antiAlias, // Ensures splash is clipped to card boundaries
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: colors.border),
       ),
       child: SwitchListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), // Matches splash to corner radius
         secondary: CircleAvatar(
           backgroundColor: colors.surface,
           child: Text(emoji, style: const TextStyle(fontSize: 20)),
@@ -104,11 +106,13 @@ class SettingsScreenAndroid extends StatelessWidget {
     return Card(
       elevation: 0,
       color: colors.card,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: colors.border),
       ),
       child: SwitchListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         secondary: CircleAvatar(
           backgroundColor: colors.surface,
           child: Icon(isDark ? Icons.brightness_3 : Icons.brightness_7, color: colors.textPrimary, size: 20),

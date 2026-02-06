@@ -19,10 +19,17 @@ import 'presentation/view_models/today_view_model.dart';
 import 'presentation/view_models/settings_view_model.dart';
 import 'presentation/view_models/history_view_model.dart';
 import 'presentation/view_models/progress_view_model.dart';
+import 'presentation/view_models/stats_view_model.dart';
 import 'presentation/screens/main_shell.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'data/repositories/in_memory_user_repository.dart';
+import 'domain/repositories/user_repository.dart';
+import 'presentation/view_models/profile_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
 
   // Initialize storage
   final store = InMemoryStore();
@@ -30,6 +37,7 @@ void main() async {
   // Initialize Repositories
   final workoutRepo = InMemoryWorkoutRepository(store);
   final settingsRepo = InMemorySettingsRepository(store);
+  final userRepo = InMemoryUserRepository(prefs);
 
   // Load Persisted Theme
   final initialThemeMode = await ThemePersistence.loadThemeMode();
@@ -43,12 +51,15 @@ void main() async {
         // Repository Injection
         Provider<WorkoutRepository>.value(value: workoutRepo),
         Provider<SettingsRepository>.value(value: settingsRepo),
+        Provider<UserRepository>.value(value: userRepo),
 
         // ViewModel Injection
         ChangeNotifierProvider(create: (_) => SettingsViewModel(settingsRepo)),
         ChangeNotifierProvider(create: (context) => TodayViewModel(workoutRepo, settingsRepo)),
         ChangeNotifierProvider(create: (context) => HistoryViewModel(workoutRepo)),
         ChangeNotifierProvider(create: (context) => ProgressViewModel(workoutRepo)),
+        ChangeNotifierProvider(create: (context) => StatsViewModel(workoutRepo)),
+        ChangeNotifierProvider(create: (context) => ProfileViewModel(userRepo, workoutRepo, settingsRepo)),
       ],
       child: const WorkoutApp(),
     ),

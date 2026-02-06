@@ -1,9 +1,10 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:cupertino_native/components/button.dart';
 import 'package:cupertino_native/style/sf_symbol.dart';
 import '../camera/camera_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import '../../view_models/today_view_model.dart';
 import '../../../domain/entities/workout_day.dart';
 import '../../../domain/value_objects/zone_type.dart';
 import '../../../core/theme/theme_provider.dart';
@@ -11,7 +12,15 @@ import '../../../core/theme/color_palette.dart';
 import '../../widgets/macro_entry_sheet.dart';
 import '../../widgets/measurement_entry_sheet.dart';
 import '../../../domain/entities/tracking_config.dart';
+import '../../view_models/today_view_model.dart';
+import '../../view_models/history_view_model.dart';
+import '../../view_models/progress_view_model.dart';
+import '../../view_models/stats_view_model.dart';
 import '../../view_models/settings_view_model.dart';
+import '../../view_models/profile_view_model.dart';
+import '../profile/profile_screen.dart';
+import '../profile/delete_data_screen.dart';
+import 'package:cupertino_native/cupertino_native.dart';
 
 enum ActiveSheet { none, macros, measurements }
 
@@ -37,6 +46,14 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
     setState(() {
       _activeSheet = ActiveSheet.none;
     });
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => const ProfileScreen()));
+  }
+
+  void _navigateToDeleteData() {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => const DeleteDataScreen()));
   }
 
   @override
@@ -200,16 +217,38 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
   }
 
   Widget _buildProfileAvatar(AppColors colors) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: colors.card,
-        shape: BoxShape.circle,
-        image: const DecorationImage(image: AssetImage('assets/images/transformation/1.png'), fit: BoxFit.cover),
-        boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(10), blurRadius: 10, offset: const Offset(0, 4))],
+    final profileVm = context.watch<ProfileViewModel>();
+    final path = profileVm.avatarPath;
+
+    return GestureDetector(
+      onTap: () => _showProfileMenu(context, colors),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: colors.surface,
+          shape: BoxShape.circle,
+          image: DecorationImage(image: _provideAvatar(path), fit: BoxFit.cover),
+          border: Border.all(color: colors.primary.withAlpha(30), width: 1),
+          boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 4, offset: const Offset(0, 2))],
+        ),
       ),
     );
+  }
+
+  void _showProfileMenu(BuildContext context, AppColors colors) {
+    showCupertinoModalPopup(
+      context: context,
+      barrierColor: CupertinoColors.black.withAlpha(20),
+      builder: (context) =>
+          _LiquidGlassMenu(onProfile: _navigateToProfile, onDelete: _navigateToDeleteData, colors: colors),
+    );
+  }
+
+  ImageProvider _provideAvatar(String? path) {
+    if (path == null) return const AssetImage('assets/images/transformation/1.png');
+    if (path.startsWith('assets/')) return AssetImage(path);
+    return FileImage(File(path));
   }
 
   Widget _buildDailyGoalCard(BuildContext context, AppColors colors, double percentage) {
@@ -504,5 +543,82 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
       'December',
     ];
     return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+  }
+}
+
+class _LiquidGlassMenu extends StatelessWidget {
+  final VoidCallback onProfile;
+  final VoidCallback onDelete;
+  final AppColors colors;
+
+  const _LiquidGlassMenu({required this.onProfile, required this.onDelete, required this.colors});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 100, // Adjusted for Sliver Nav Bar height
+          right: 20,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                width: 220,
+                decoration: BoxDecoration(
+                  color: colors.background.withAlpha(150),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: colors.border.withAlpha(80)),
+                  boxShadow: [
+                    BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 30, offset: const Offset(0, 15)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildItem('Profile', CupertinoIcons.person_circle, () {
+                      Navigator.pop(context);
+                      onProfile();
+                    }, false),
+                    Container(height: 0.5, color: colors.border.withAlpha(80)),
+                    _buildItem('Delete Data', CupertinoIcons.trash, () {
+                      Navigator.pop(context);
+                      onDelete();
+                    }, true),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItem(String label, IconData icon, VoidCallback onTap, bool isDestructive) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        color: const Color(0x00000000),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: isDestructive ? CupertinoColors.destructiveRed : colors.textPrimary),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 17,
+                color: isDestructive ? CupertinoColors.destructiveRed : colors.textPrimary,
+                decoration: TextDecoration.none,
+                fontWeight: FontWeight.w400,
+                fontFamily: '.SF Pro Text',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

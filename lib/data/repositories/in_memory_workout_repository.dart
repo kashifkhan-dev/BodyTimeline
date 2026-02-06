@@ -99,13 +99,18 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
     final beforeKey = _store.dateToKey(before);
 
     for (final key in sortedDates) {
-      if (key.compareTo(beforeKey) < 0) {
+      if (key.compareTo(beforeKey) <= 0) {
         final day = _store.days[key]!;
         final photo = day.photos.where((p) => p.zoneType == zoneType).lastOrNull;
         if (photo != null) return photo;
       }
     }
     return null;
+  }
+
+  @override
+  Future<void> deleteAllData() async {
+    _store.clearAll();
   }
 }
 

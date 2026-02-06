@@ -5,6 +5,10 @@ import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import '../../../domain/entities/workout_day.dart';
 import '../../../domain/value_objects/zone_type.dart';
+import '../../../domain/value_objects/measurement_type.dart';
+import '../../../domain/entities/measurement.dart';
+import '../stats/nutrient_stats_screen_ios.dart';
+import '../stats/measurement_stats_screen_ios.dart';
 
 class HistoryScreenIOS extends StatelessWidget {
   const HistoryScreenIOS({super.key});
@@ -67,11 +71,11 @@ class HistoryScreenIOS extends StatelessWidget {
                   const SizedBox(height: 32),
                   _buildSectionTitle('Nutrients Overview', colors),
                   const SizedBox(height: 12),
-                  _buildNutrientsGrid(vm, colors),
+                  _buildNutrientsGrid(context, vm, colors),
                   const SizedBox(height: 32),
-                  _buildSectionTitle('Body Progress', colors),
+                  _buildSectionTitle('Measurements Overview', colors),
                   const SizedBox(height: 12),
-                  _buildMeasurementsCard(vm, colors),
+                  _buildMeasurementsOverview(context, vm, colors),
                   const SizedBox(height: 120),
                 ]),
               ),
@@ -183,41 +187,169 @@ class HistoryScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildNutrientsGrid(HistoryViewModel vm, AppColors colors) {
+  Widget _buildNutrientsGrid(BuildContext context, HistoryViewModel vm, AppColors colors) {
     final macros = vm.averageMacros;
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const NutrientStatsScreenIOS())),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildValueCard(
+                  'AVG CALORIES',
+                  vm.averageCalories.toStringAsFixed(0),
+                  'kcal',
+                  'Daily average',
+                  colors,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildValueCard('PROTEIN', macros.protein.toStringAsFixed(0), 'g', 'Daily average', colors),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildValueCard('CARBS', macros.carbs.toStringAsFixed(0), 'g', 'Daily average', colors)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildValueCard('FATS', macros.fat.toStringAsFixed(0), 'g', 'Daily average', colors)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMeasurementsOverview(BuildContext context, HistoryViewModel vm, AppColors colors) {
+    final latest = vm.latestMeasurements;
+    if (latest.isEmpty) return _buildEmptyCard('No measurements recorded yet', colors);
+
+    final entries = latest.entries.toList();
+
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildValueCard(
-                'AVG CALORIES',
-                vm.averageCalories.toStringAsFixed(0),
-                'kcal',
-                'Daily average',
-                colors,
-              ),
+        for (int i = 0; i < entries.length; i += 2)
+          Padding(
+            padding: EdgeInsets.only(bottom: (i + 2 < entries.length) ? 16 : 0),
+            child: Row(
+              children: [
+                Expanded(child: _buildMeasurementValueCard(context, entries[i].value, colors)),
+                const SizedBox(width: 16),
+                if (i + 1 < entries.length)
+                  Expanded(child: _buildMeasurementValueCard(context, entries[i + 1].value, colors))
+                else
+                  const Expanded(child: SizedBox.shrink()),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildValueCard('PROTEIN', macros.protein.toStringAsFixed(0), 'g', 'Daily average', colors),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(child: _buildValueCard('CARBS', macros.carbs.toStringAsFixed(0), 'g', 'Daily average', colors)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildValueCard('FATS', macros.fat.toStringAsFixed(0), 'g', 'Daily average', colors)),
-          ],
-        ),
+          ),
       ],
     );
   }
 
-  Widget _buildMeasurementsCard(HistoryViewModel vm, AppColors colors) {
-    return _buildValueCard('LOGGING FREQUENCY', '${vm.measurementFrequency}', 'sessions', 'Keep it up!', colors);
+  Widget _buildMeasurementValueCard(BuildContext context, Measurement m, AppColors colors) {
+    return GestureDetector(
+      onTap: () =>
+          Navigator.of(context).push(CupertinoPageRoute(builder: (context) => const MeasurementStatsScreenIOS())),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 15, offset: const Offset(0, 8))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(_getMeasurementEmoji(m.type), style: const TextStyle(fontSize: 14)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _getMeasurementLabel(m.type).toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textMuted,
+                      letterSpacing: 0.8,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  m.value % 1 == 0 ? m.value.toInt().toString() : m.value.toStringAsFixed(1),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: colors.textPrimary),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  m.unit,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.textSecondary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text('Latest recorded', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getMeasurementLabel(MeasurementType type) {
+    switch (type) {
+      case MeasurementType.weight:
+        return 'Weight';
+      case MeasurementType.waist:
+        return 'Waist';
+      case MeasurementType.chest:
+        return 'Chest';
+      case MeasurementType.hips:
+        return 'Hips';
+      case MeasurementType.armLeft:
+        return 'Arm (Left)';
+      case MeasurementType.armRight:
+        return 'Arm (Right)';
+      case MeasurementType.thighLeft:
+        return 'Thigh (Left)';
+      case MeasurementType.thighRight:
+        return 'Thigh (Right)';
+      case MeasurementType.neck:
+        return 'Neck';
+    }
+  }
+
+  String _getMeasurementEmoji(MeasurementType type) {
+    switch (type) {
+      case MeasurementType.weight:
+        return '⚖️';
+      case MeasurementType.waist:
+        return '📏';
+      case MeasurementType.chest:
+        return '👕';
+      case MeasurementType.hips:
+        return '👖';
+      case MeasurementType.armLeft:
+        return '💪';
+      case MeasurementType.armRight:
+        return '💪';
+      case MeasurementType.thighLeft:
+        return '🦵';
+      case MeasurementType.thighRight:
+        return '🦵';
+      case MeasurementType.neck:
+        return '👔';
+    }
   }
 
   Widget _buildValueCard(String title, String value, String unit, String subtext, AppColors colors) {
@@ -255,6 +387,21 @@ class HistoryScreenIOS extends StatelessWidget {
           const SizedBox(height: 4),
           Text(subtext, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyCard(String text, AppColors colors) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colors.border),
+      ),
+      child: Center(
+        child: Text(text, style: TextStyle(color: colors.textMuted, fontSize: 15)),
       ),
     );
   }

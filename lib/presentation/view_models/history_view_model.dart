@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/workout_day.dart';
 import '../../domain/repositories/workout_repository.dart';
 import '../../domain/entities/macro_log.dart';
+import '../../domain/entities/measurement.dart';
+import '../../domain/value_objects/measurement_type.dart';
 
 class HistoryViewModel extends ChangeNotifier {
   final WorkoutRepository _workoutRepository;
@@ -19,6 +21,7 @@ class HistoryViewModel extends ChangeNotifier {
   double _averageCalories = 0.0;
   MacroLog _averageMacros = const MacroLog(calories: 0, protein: 0, carbs: 0, fat: 0);
   int _measurementFrequency = 0;
+  Map<MeasurementType, Measurement> _latestMeasurements = {};
   Map<DateTime, double> _completionCache = {};
 
   HistoryViewModel(this._workoutRepository) {
@@ -38,6 +41,7 @@ class HistoryViewModel extends ChangeNotifier {
   double get averageCalories => _averageCalories;
   MacroLog get averageMacros => _averageMacros;
   int get measurementFrequency => _measurementFrequency;
+  Map<MeasurementType, Measurement> get latestMeasurements => _latestMeasurements;
 
   void setSelectedDate(DateTime date) {
     _selectedDate = DateTime(date.year, date.month, date.day);
@@ -142,6 +146,17 @@ class HistoryViewModel extends ChangeNotifier {
     }
 
     _measurementFrequency = _history.where((d) => d.measurements.isNotEmpty).length;
+
+    // 7. Latest non-zero measurements
+    final latestMap = <MeasurementType, Measurement>{};
+    for (var day in sortedDesc) {
+      for (var m in day.measurements) {
+        if (m.value > 0 && !latestMap.containsKey(m.type)) {
+          latestMap[m.type] = m;
+        }
+      }
+    }
+    _latestMeasurements = latestMap;
   }
 
   void _resetStats() {
@@ -153,6 +168,7 @@ class HistoryViewModel extends ChangeNotifier {
     _averageCalories = 0.0;
     _averageMacros = const MacroLog(calories: 0, protein: 0, carbs: 0, fat: 0);
     _measurementFrequency = 0;
+    _latestMeasurements = {};
     _completionCache = {};
   }
 

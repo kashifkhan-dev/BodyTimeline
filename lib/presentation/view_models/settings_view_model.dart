@@ -8,12 +8,12 @@ class SettingsViewModel extends ChangeNotifier {
   TrackingConfig? _config;
 
   SettingsViewModel(this._repository) {
-    _loadConfig();
+    loadConfig();
   }
 
   TrackingConfig? get config => _config;
 
-  Future<void> _loadConfig() async {
+  Future<void> loadConfig() async {
     _config = await _repository.getConfig();
     notifyListeners();
   }
