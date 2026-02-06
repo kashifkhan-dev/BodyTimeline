@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import '../view_models/history_view_model.dart';
-import '../../core/theme/theme_provider.dart';
-import '../../core/theme/color_palette.dart';
-import '../../domain/entities/workout_day.dart';
-import '../../domain/value_objects/zone_type.dart';
+import '../../view_models/history_view_model.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../core/theme/color_palette.dart';
+import '../../../domain/entities/workout_day.dart';
+import '../../../domain/value_objects/zone_type.dart';
 
-class HistoryPage extends StatelessWidget {
-  const HistoryPage({super.key});
+class HistoryScreenIOS extends StatelessWidget {
+  const HistoryScreenIOS({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,6 @@ class HistoryPage extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
 
-    // Dynamic title for selected month/year
     final monthNames = [
       'January',
       'February',
@@ -49,40 +48,27 @@ class HistoryPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // 1. Month/Year Subtitle
                   Text(
                     dateSubtext,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: colors.textSecondary),
                   ),
                   const SizedBox(height: 16),
-
-                  // 2. Week Selector
                   _WeekSelector(vm: vm, colors: colors),
                   const SizedBox(height: 32),
-
-                  // 3. Day Details Section
                   _DayDetails(vm: vm, colors: colors),
                   const SizedBox(height: 48),
-
-                  // 4. Streak Hero
                   _buildSectionTitle('Streak', colors),
                   const SizedBox(height: 12),
                   _buildStreakHero(vm, colors),
                   const SizedBox(height: 32),
-
-                  // 5. Heatmap Section
                   _buildSectionTitle('2026 Activity', colors),
                   const SizedBox(height: 12),
                   _buildHeatmapSection(vm, colors, 2026),
                   const SizedBox(height: 32),
-
-                  // 6. Nutrients Overview
                   _buildSectionTitle('Nutrients Overview', colors),
                   const SizedBox(height: 12),
                   _buildNutrientsGrid(vm, colors),
                   const SizedBox(height: 32),
-
-                  // 7. Body Progress
                   _buildSectionTitle('Body Progress', colors),
                   const SizedBox(height: 12),
                   _buildMeasurementsCard(vm, colors),
@@ -121,18 +107,14 @@ class HistoryPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        'CURRENT STREAK',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: colors.textSecondary,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'CURRENT STREAK',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textSecondary,
+                      letterSpacing: 1.1,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -210,9 +192,7 @@ class HistoryPage extends StatelessWidget {
             Expanded(
               child: _buildValueCard(
                 'AVG CALORIES',
-                vm.averageCalories
-                    .toStringAsFixed(0)
-                    .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},'),
+                vm.averageCalories.toStringAsFixed(0),
                 'kcal',
                 'Daily average',
                 colors,
@@ -288,10 +268,8 @@ class _WeekSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Current selected date and its week
     final selected = vm.selectedDate;
     final startOfWeek = selected.subtract(Duration(days: selected.weekday - 1));
-
     final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return Container(
@@ -306,7 +284,6 @@ class _WeekSelector extends StatelessWidget {
         children: List.generate(7, (index) {
           final date = startOfWeek.add(Duration(days: index));
           final isSelected = date.day == selected.day && date.month == selected.month && date.year == selected.year;
-          // isToday removed as it was unused
           final completion = vm.getCompletionForDate(date);
 
           return GestureDetector(
@@ -355,9 +332,7 @@ class _WeekSelector extends StatelessWidget {
                             : colors.success,
                         shape: BoxShape.circle,
                       ),
-                    )
-                  else
-                    const SizedBox(height: 4),
+                    ),
                 ],
               ),
             ),
@@ -380,7 +355,6 @@ class _DayDetails extends StatelessWidget {
     final now = DateTime.now();
     final isToday =
         vm.selectedDate.day == now.day && vm.selectedDate.month == now.month && vm.selectedDate.year == now.year;
-
     final title = isToday ? 'Today' : _formatDate(vm.selectedDate);
 
     if (day == null) {
@@ -399,7 +373,6 @@ class _DayDetails extends StatelessWidget {
 
     final totalZones = day.activeZones.length;
     final completedZones = day.activeZones.where((z) => day.isZoneCompleted(z)).length;
-    final statusText = '$completedZones of $totalZones zones completed';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,7 +381,10 @@ class _DayDetails extends StatelessWidget {
           title,
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
         ),
-        Text(statusText, style: TextStyle(fontSize: 15, color: colors.textSecondary)),
+        Text(
+          '$completedZones of $totalZones zones completed',
+          style: TextStyle(fontSize: 15, color: colors.textSecondary),
+        ),
         const SizedBox(height: 20),
         ...day.activeZones.map((zone) => _buildTaskDetailCard(day, zone, colors)),
       ],
@@ -432,7 +408,6 @@ class _DayDetails extends StatelessWidget {
 
   Widget _buildTaskDetailCard(WorkoutDay day, ZoneType zone, AppColors colors) {
     final isCompleted = day.isZoneCompleted(zone);
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
@@ -525,60 +500,50 @@ class _GithubHeatmap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firstDay = DateTime(year, 1, 1);
-    final lastDay = DateTime(year, 12, 31);
-    final int firstWeekday = firstDay.weekday;
-    final int sunOffset = firstWeekday == 7 ? 0 : firstWeekday;
+    final int sunOffset = firstDay.weekday == 7 ? 0 : firstDay.weekday;
     final gridStartDate = firstDay.subtract(Duration(days: sunOffset));
-    final totalDaysCount = lastDay.difference(gridStartDate).inDays + 1;
-    final weeksCount = (totalDaysCount / 7).ceil();
+    final weeksCount = 53;
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Column(
           children: [
-            Column(
+            const SizedBox(height: 28),
+            _buildDayLabel('M'),
+            const SizedBox(height: 14),
+            _buildDayLabel('W'),
+            const SizedBox(height: 14),
+            _buildDayLabel('F'),
+          ],
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 28),
-                _buildDayLabel('M'),
-                const SizedBox(height: 14),
-                _buildDayLabel('W'),
-                const SizedBox(height: 14),
-                _buildDayLabel('F'),
+                _buildMonthLabels(gridStartDate, weeksCount),
+                const SizedBox(height: 8),
+                Row(
+                  children: List.generate(weeksCount, (wIdx) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                      child: Column(
+                        children: List.generate(7, (dIdx) {
+                          final date = gridStartDate.add(Duration(days: wIdx * 7 + dIdx));
+                          if (date.year != year) return _buildCell(CupertinoColors.transparent);
+                          final completion = vm.getCompletionForDate(date);
+                          return _buildCell(_getCellColor(completion));
+                        }),
+                      ),
+                    );
+                  }),
+                ),
               ],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildMonthLabels(gridStartDate, weeksCount),
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(weeksCount, (wIdx) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 1.5),
-                          child: Column(
-                            children: List.generate(7, (dIdx) {
-                              final date = gridStartDate.add(Duration(days: wIdx * 7 + dIdx));
-                              if (date.year != year) return _buildCell(CupertinoColors.transparent);
-                              final completion = vm.getCompletionForDate(date);
-                              return _buildCell(_getCellColor(completion));
-                            }),
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
@@ -588,9 +553,8 @@ class _GithubHeatmap extends StatelessWidget {
     final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     final List<Widget> labels = [];
     int lastMonth = -1;
-
     for (int i = 0; i < weeksCount; i++) {
-      final date = gridStartDate.add(Duration(days: i * 7 + 3)); // Check mid-week
+      final date = gridStartDate.add(Duration(days: i * 7 + 3));
       if (date.month != lastMonth && date.year == year) {
         labels.add(
           Positioned(
@@ -604,7 +568,6 @@ class _GithubHeatmap extends StatelessWidget {
         lastMonth = date.month;
       }
     }
-
     return SizedBox(
       height: 14,
       width: weeksCount * 15.0,
@@ -612,45 +575,36 @@ class _GithubHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildDayLabel(String label) {
-    return SizedBox(
-      height: 14,
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 9, color: colors.textMuted, fontWeight: FontWeight.bold),
-        ),
+  Widget _buildDayLabel(String label) => SizedBox(
+    height: 14,
+    child: Center(
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 9, color: colors.textMuted, fontWeight: FontWeight.bold),
       ),
-    );
-  }
-
-  Widget _buildCell(Color color) {
-    return Container(
-      width: 12,
-      height: 12,
-      margin: const EdgeInsets.symmetric(vertical: 1),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)),
-    );
-  }
+    ),
+  );
+  Widget _buildCell(Color color) => Container(
+    width: 12,
+    height: 12,
+    margin: const EdgeInsets.symmetric(vertical: 1),
+    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)),
+  );
 
   Color _getCellColor(double completion) {
-    if (completion <= 0) {
-      return colors.brightness == Brightness.light ? const Color(0xFFF3F4F6) : colors.surface;
-    }
-
+    if (completion <= 0) return colors.brightness == Brightness.light ? const Color(0xFFF3F4F6) : colors.surface;
     if (colors.brightness == Brightness.light) {
       if (completion < 0.25) return const Color(0xFFD1FAE5);
       if (completion < 0.50) return const Color(0xFF6EE7B7);
       if (completion < 0.75) return const Color(0xFF34D399);
       if (completion < 1.0) return const Color(0xFF10B981);
-      return const Color(0xFF065F46); // 100% is deep success green
+      return const Color(0xFF065F46);
     } else {
-      // Dark mode heatmap colors - deeper depth and glowing emeralds
       if (completion < 0.25) return colors.primary.withAlpha(40);
       if (completion < 0.50) return colors.primary.withAlpha(80);
       if (completion < 0.75) return colors.primary.withAlpha(140);
       if (completion < 1.0) return colors.primary.withAlpha(200);
-      return colors.primary; // 100% is full glowing primary
+      return colors.primary;
     }
   }
 }

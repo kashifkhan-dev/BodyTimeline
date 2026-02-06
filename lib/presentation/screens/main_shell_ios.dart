@@ -1,21 +1,26 @@
 import 'package:flutter/cupertino.dart';
 import 'package:cupertino_native/cupertino_native.dart';
-import 'today_page.dart';
-import 'history_page.dart';
-import 'progress_page.dart';
-import 'settings_page.dart';
+import 'today/today_screen.dart';
+import 'history/history_screen.dart';
+import 'progress/progress_screen.dart';
+import 'settings/settings_screen.dart';
 
-class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+class MainShellIOS extends StatefulWidget {
+  const MainShellIOS({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  State<MainShellIOS> createState() => _MainShellIOSState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellIOSState extends State<MainShellIOS> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [const TodayPage(), const HistoryPage(), const ProgressPage(), const SettingsPage()];
+  final List<Widget> _pages = [
+    const TodayScreen(),
+    const HistoryScreen(),
+    const ProgressScreen(),
+    const SettingsScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {

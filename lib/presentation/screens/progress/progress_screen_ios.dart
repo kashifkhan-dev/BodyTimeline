@@ -1,21 +1,23 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show LinearProgressIndicator, AlwaysStoppedAnimation;
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:cupertino_native/cupertino_native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_quick_video_encoder/flutter_quick_video_encoder.dart';
 import 'package:image/image.dart' as img;
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:cupertino_native/cupertino_native.dart';
-import '../view_models/progress_view_model.dart';
-import '../../core/theme/theme_provider.dart';
-import '../../core/theme/color_palette.dart';
-import '../../domain/value_objects/zone_type.dart';
-import '../widgets/timelapse_overlay.dart';
 
-class ProgressPage extends StatelessWidget {
-  const ProgressPage({super.key});
+import '../../view_models/progress_view_model.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../core/theme/color_palette.dart';
+import '../../../domain/value_objects/zone_type.dart';
+import '../../widgets/timelapse_overlay.dart';
+
+class ProgressScreenIOS extends StatelessWidget {
+  const ProgressScreenIOS({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,22 +25,14 @@ class ProgressPage extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
 
-    // IMAGE SOURCE SELECTION
     final List<String> photos;
     final List<DateTime> dates;
 
     if (vm.selectedZone == ZoneType.face) {
-      // MANDATORY: 2 images for face transformation in strict order
       photos = ['assets/images/face/face1.png', 'assets/images/face/face2.png'];
-      // Match dates to the 2 frames
       final allDates = vm.photoDates;
-      if (allDates.length >= 2) {
-        dates = [allDates.first, allDates.last];
-      } else {
-        dates = allDates;
-      }
+      dates = allDates.length >= 2 ? [allDates.first, allDates.last] : allDates;
     } else {
-      // Body Front / Default transformation sequence (19 images)
       photos = List.generate(19, (i) => 'assets/images/transformation/${i + 1}.png');
       dates = vm.photoDates;
     }
@@ -180,10 +174,7 @@ class ProgressPage extends StatelessWidget {
   }
 
   Widget _buildBeforeAfterSection(BuildContext context, List<String> photos, List<DateTime> dates, AppColors colors) {
-    if (photos.isEmpty) {
-      return _buildEmptyState('No photos captured for this zone.', colors);
-    }
-
+    if (photos.isEmpty) return _buildEmptyState('No photos captured for this zone.', colors);
     final beforeImage = photos.first;
     final afterImage = photos.last;
     final beforeDate = dates.first;
@@ -225,12 +216,10 @@ class ProgressPage extends StatelessWidget {
                   Expanded(
                     child: CNButton(
                       label: 'Timelapse',
-                      onPressed: () {
-                        showCupertinoModalPopup(
-                          context: context,
-                          builder: (context) => TimelapseOverlay(images: photos, dates: dates),
-                        );
-                      },
+                      onPressed: () => showCupertinoModalPopup(
+                        context: context,
+                        builder: (context) => TimelapseOverlay(images: photos, dates: dates),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -274,7 +263,6 @@ class ProgressPage extends StatelessWidget {
 
   Widget _buildTimelineSection(List<String> photos, AppColors colors) {
     if (photos.isEmpty) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -378,29 +366,27 @@ class ProgressPage extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) =>
-          _ExportProgressOverlay(qualityName: qualityName, height: height, photos: photos, colors: colors),
+          _ExportProgressOverlayIOS(qualityName: qualityName, height: height, photos: photos, colors: colors),
     );
   }
 }
 
-class _ExportProgressOverlay extends StatefulWidget {
+class _ExportProgressOverlayIOS extends StatefulWidget {
   final String qualityName;
   final int height;
   final List<String> photos;
   final AppColors colors;
-
-  const _ExportProgressOverlay({
+  const _ExportProgressOverlayIOS({
     required this.qualityName,
     required this.height,
     required this.photos,
     required this.colors,
   });
-
   @override
-  State<_ExportProgressOverlay> createState() => _ExportProgressOverlayState();
+  State<_ExportProgressOverlayIOS> createState() => _ExportProgressOverlayIOSState();
 }
 
-class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
+class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
   double _progress = 0.0;
   String _status = 'Initializing...';
   bool _isDone = false;
@@ -416,7 +402,6 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
     final int frameCount = widget.photos.length;
     final int steps = frameCount + 5;
     int currentStep = 0;
-
     void update(String status, {double? overrideProgress}) {
       currentStep++;
       if (mounted) {
@@ -428,22 +413,19 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
     }
 
     try {
-      // 1. Permissions (GRACEFUL)
       update('Checking permissions...');
       final status = await Permission.storage.request();
       if (!status.isGranted && !status.isLimited) {
         if (mounted) {
           setState(() {
-            _status = 'Storage permission required for export.';
+            _status = 'Storage permission required.';
             _isDone = true;
           });
         }
         return;
       }
-
-      // 2. Setup Encoder
       update('Preparing video engine...');
-      final width = (widget.height * 3 / 4).round(); // Aspect ratio 3:4
+      final width = (widget.height * 3 / 4).round();
       final docsDir = await getApplicationDocumentsDirectory();
       final outputPath = '${docsDir.path}/transformation_${DateTime.now().millisecondsSinceEpoch}.mp4';
 
@@ -452,75 +434,52 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
         height: widget.height,
         fps: 5,
         videoBitrate: 2000000,
-        profileLevel: ProfileLevel.highAutoLevel,
         audioChannels: 0,
         audioBitrate: 0,
         sampleRate: 44100,
+        profileLevel: ProfileLevel.highAutoLevel,
         filepath: outputPath,
       );
 
-      // 3. Process frames
       for (int i = 0; i < frameCount; i++) {
         update('Encoding frame ${i + 1}/$frameCount');
         final byteData = await rootBundle.load(widget.photos[i]);
         final bytes = byteData.buffer.asUint8List();
-
-        // Decode using 'image' package
         final original = img.decodeImage(bytes);
         if (original == null) throw Exception('Failed to decode frame $i');
-
-        // PRESERVE ASPECT RATIO (Contain / Letterbox logic)
-        // 1. Create a solid black canvas of final video dimensions
         final frameCanvas = img.Image(width: width, height: widget.height, numChannels: 4);
         img.fill(frameCanvas, color: img.ColorUint8.rgba(0, 0, 0, 255));
-
-        // 2. Calculate "Contain" dimensions
-        double scale = 1.0;
-        double scaleWidth = width / original.width;
-        double scaleHeight = widget.height / original.height;
-        scale = scaleWidth < scaleHeight ? scaleWidth : scaleHeight;
-
+        double scale = (width / original.width < widget.height / original.height)
+            ? width / original.width
+            : widget.height / original.height;
         int targetWidth = (original.width * scale).round();
         int targetHeight = (original.height * scale).round();
-
-        // 3. Resize original image
         final resized = img.copyResize(
           original,
           width: targetWidth,
           height: targetHeight,
           interpolation: img.Interpolation.linear,
         );
-
-        // 4. Center-fit onto canvas
-        int offsetX = (width - targetWidth) ~/ 2;
-        int offsetY = (widget.height - targetHeight) ~/ 2;
-
-        img.compositeImage(frameCanvas, resized, dstX: offsetX, dstY: offsetY);
-
-        // Ensure RGBA format for encoder
-        final rgba = frameCanvas.toUint8List();
-
-        await FlutterQuickVideoEncoder.appendVideoFrame(rgba);
+        img.compositeImage(
+          frameCanvas,
+          resized,
+          dstX: (width - targetWidth) ~/ 2,
+          dstY: (widget.height - targetHeight) ~/ 2,
+        );
+        await FlutterQuickVideoEncoder.appendVideoFrame(frameCanvas.toUint8List());
       }
-
-      // 4. Finish
       update('Finalizing MP4 file...');
       await FlutterQuickVideoEncoder.finish();
-
       _filePath = outputPath;
       update('Export complete!', overrideProgress: 1.0);
-
       if (mounted) {
         setState(() {
           _isDone = true;
         });
       }
-
-      // 5. Open via System Share Sheet
       // ignore: deprecated_member_use
       await Share.shareXFiles([XFile(_filePath!)], subject: 'My Transformation');
     } catch (e) {
-      debugPrint('Export Error: $e');
       if (mounted) {
         setState(() {
           _status = 'Export failed: ${e.toString()}';
@@ -562,21 +521,14 @@ class _ExportProgressOverlayState extends State<_ExportProgressOverlay> {
                 style: TextStyle(fontSize: 15, color: widget.colors.textSecondary, decoration: TextDecoration.none),
               ),
               const SizedBox(height: 32),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  height: 8,
-                  width: double.infinity,
-                  color: widget.colors.progressBackground,
-                  child: FractionallySizedBox(
-                    alignment: Alignment.centerLeft,
-                    widthFactor: _progress,
-                    child: Container(color: const Color(0xFFD0F288)),
-                  ),
-                ),
+              LinearProgressIndicator(
+                value: _progress,
+                backgroundColor: widget.colors.progressBackground,
+                valueColor: const AlwaysStoppedAnimation(Color(0xFFD0F288)),
+                minHeight: 8,
               ),
               const SizedBox(height: 48),
-              if (_isDone) ...[CNButton(label: 'Done', onPressed: () => Navigator.pop(context))],
+              if (_isDone) CNButton(label: 'Done', onPressed: () => Navigator.pop(context)),
             ],
           ),
         ),

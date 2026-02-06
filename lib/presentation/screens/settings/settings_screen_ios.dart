@@ -2,12 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_native/cupertino_native.dart';
 import 'package:provider/provider.dart';
-import '../view_models/settings_view_model.dart';
-import '../../domain/value_objects/zone_type.dart';
-import '../../core/theme/theme_provider.dart';
+import '../../view_models/settings_view_model.dart';
+import '../../../domain/value_objects/zone_type.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../core/theme/color_palette.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+class SettingsScreenIOS extends StatelessWidget {
+  const SettingsScreenIOS({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +18,15 @@ class SettingsPage extends StatelessWidget {
     final config = vm.config;
 
     if (config == null) {
-      return Center(child: CupertinoActivityIndicator(color: colors.primary));
+      return Container(
+        color: colors.background,
+        child: const Center(child: CupertinoActivityIndicator()),
+      );
     }
 
-    return Scaffold(
+    return CupertinoPageScaffold(
       backgroundColor: colors.background,
-      body: CustomScrollView(
+      child: CustomScrollView(
         physics: const ClampingScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
@@ -34,47 +38,23 @@ class SettingsPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                SizedBox(height: 24),
-                Text(
-                  'TRACKING ZONES',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textMuted,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                const SizedBox(height: 24),
+                _buildHeader('TRACKING ZONES', colors),
                 const SizedBox(height: 12),
                 _buildZoneTile(context, colors, vm, ZoneType.face, 'Face', '👤'),
                 _buildZoneTile(context, colors, vm, ZoneType.bodyFront, 'Body Front', '🧍'),
                 _buildZoneTile(context, colors, vm, ZoneType.bodySide, 'Body Side', '🧍‍♂️'),
                 _buildZoneTile(context, colors, vm, ZoneType.bodyBack, 'Body Back', '🧍‍♀️'),
                 const SizedBox(height: 32),
-                Text(
-                  'ADDITIONAL TRACKING',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textMuted,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                _buildHeader('ADDITIONAL TRACKING', colors),
                 const SizedBox(height: 12),
                 _buildZoneTile(context, colors, vm, ZoneType.measurements, 'Measurements', '📏'),
                 _buildZoneTile(context, colors, vm, ZoneType.macronutrients, 'Macronutrients', '🍎'),
                 const SizedBox(height: 48),
-                Text(
-                  'APPEARANCE',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textMuted,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                _buildHeader('APPEARANCE', colors),
                 const SizedBox(height: 12),
                 _buildThemeToggle(context, colors, theme),
-                const SizedBox(height: 120), // Bottom padding for tab bar
+                const SizedBox(height: 120),
               ]),
             ),
           ),
@@ -83,16 +63,22 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  Widget _buildHeader(String title, AppColors colors) {
+    return Text(
+      title,
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textMuted, letterSpacing: 0.5),
+    );
+  }
+
   Widget _buildZoneTile(
     BuildContext context,
-    dynamic colors,
+    AppColors colors,
     SettingsViewModel vm,
     ZoneType zone,
     String label,
     String emoji,
   ) {
     final isEnabled = vm.config?.isEnabled(zone) ?? false;
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Container(
@@ -125,9 +111,8 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeToggle(BuildContext context, dynamic colors, ThemeProvider theme) {
+  Widget _buildThemeToggle(BuildContext context, AppColors colors, ThemeProvider theme) {
     final isDark = theme.themeMode == ThemeMode.dark;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(

@@ -6,7 +6,7 @@ PODS:
   - Flutter (1.0.0)
   - flutter_quick_video_encoder (0.0.1):
     - Flutter
-  - open_file_plus (1.0.0):
+  - open_filex (0.0.2):
     - Flutter
   - permission_handler_apple (9.3.0):
     - Flutter
@@ -21,7 +21,7 @@ DEPENDENCIES:
   - cupertino_native (from `.symlinks/plugins/cupertino_native/ios`)
   - Flutter (from `Flutter`)
   - flutter_quick_video_encoder (from `.symlinks/plugins/flutter_quick_video_encoder/ios`)
-  - open_file_plus (from `.symlinks/plugins/open_file_plus/ios`)
+  - open_filex (from `.symlinks/plugins/open_filex/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -35,8 +35,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_quick_video_encoder:
     :path: ".symlinks/plugins/flutter_quick_video_encoder/ios"
-  open_file_plus:
-    :path: ".symlinks/plugins/open_file_plus/ios"
+  open_filex:
+    :path: ".symlinks/plugins/open_filex/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   share_plus:
@@ -49,7 +49,7 @@ SPEC CHECKSUMS:
   cupertino_native: 1db0611c94f9a9ea28433ed16a344dcb996370b5
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_quick_video_encoder: c012b1523f40093feeffa90cebfe71b32b7b6d25
-  open_file_plus: b0a12f9db69dfdab3b4751761753d2ba229ae6c1
+  open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb

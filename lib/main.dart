@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Core
@@ -17,7 +19,7 @@ import 'presentation/view_models/today_view_model.dart';
 import 'presentation/view_models/settings_view_model.dart';
 import 'presentation/view_models/history_view_model.dart';
 import 'presentation/view_models/progress_view_model.dart';
-import 'presentation/pages/main_shell.dart';
+import 'presentation/screens/main_shell.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,11 +62,22 @@ class WorkoutApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return CupertinoApp(
-      title: 'Workout',
-      debugShowCheckedModeBanner: false,
-      theme: themeProvider.cupertinoTheme(context),
-      home: const MainShell(),
-    );
+    if (Platform.isIOS) {
+      return CupertinoApp(
+        title: 'Workout',
+        debugShowCheckedModeBanner: false,
+        theme: themeProvider.cupertinoTheme(context),
+        home: const MainShell(),
+      );
+    } else {
+      return MaterialApp(
+        title: 'Workout',
+        debugShowCheckedModeBanner: false,
+        theme: themeProvider.materialTheme(context),
+        darkTheme: themeProvider.materialTheme(context), // themeData handles both based on brightness
+        themeMode: themeProvider.themeMode,
+        home: const MainShell(),
+      );
+    }
   }
 }
