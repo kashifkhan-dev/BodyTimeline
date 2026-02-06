@@ -3,6 +3,7 @@ import 'today/today_screen.dart';
 import 'history/history_screen.dart';
 import 'progress/progress_screen.dart';
 import 'settings/settings_screen.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class MainShellAndroid extends StatefulWidget {
   const MainShellAndroid({super.key});
@@ -32,11 +33,11 @@ class _MainShellAndroidState extends State<MainShellAndroid> {
             _currentIndex = index;
           });
         },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.today), label: 'Today'),
-          NavigationDestination(icon: Icon(Icons.history), label: 'History'),
-          NavigationDestination(icon: Icon(Icons.bar_chart), label: 'Progress'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+        destinations: [
+          NavigationDestination(icon: const Icon(Icons.today), label: AppLocalizations.of(context)!.today),
+          NavigationDestination(icon: const Icon(Icons.history), label: AppLocalizations.of(context)!.history),
+          NavigationDestination(icon: const Icon(Icons.bar_chart), label: AppLocalizations.of(context)!.progress),
+          NavigationDestination(icon: const Icon(Icons.settings), label: AppLocalizations.of(context)!.settings),
         ],
       ),
     );

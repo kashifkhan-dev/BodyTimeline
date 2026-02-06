@@ -541,28 +541,32 @@ class _DayDetails extends StatelessWidget {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
         ),
         const SizedBox(height: 16),
-        ...day.activeZones.map((zone) => _buildTaskDetailCard(context, day, zone, colors)),
+        Card(
+          elevation: 0,
+          color: colors.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Column(
+            children: [
+              for (int i = 0; i < day.activeZones.length; i++) ...[
+                if (i > 0) Divider(height: 1, color: colors.border.withAlpha(50), indent: 16, endIndent: 16),
+                _buildTaskDetailRow(context, day, day.activeZones[i], colors),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildTaskDetailCard(BuildContext context, WorkoutDay day, ZoneType zone, AppColors colors) {
+  Widget _buildTaskDetailRow(BuildContext context, WorkoutDay day, ZoneType zone, AppColors colors) {
     final isCompleted = day.isZoneCompleted(zone);
-    return Card(
-      elevation: 0,
-      color: colors.card,
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        leading: Icon(_getZoneIcon(zone), color: colors.textPrimary),
-        title: Text(_getZoneLabel(context, zone), style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(isCompleted ? AppLocalizations.of(context)!.completed : AppLocalizations.of(context)!.pending),
-        trailing: Icon(
-          isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isCompleted ? colors.success : colors.textMuted,
-        ),
+    return ListTile(
+      leading: Icon(_getZoneIcon(zone), color: colors.textPrimary),
+      title: Text(_getZoneLabel(context, zone), style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(isCompleted ? AppLocalizations.of(context)!.completed : AppLocalizations.of(context)!.pending),
+      trailing: Icon(
+        isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+        color: isCompleted ? colors.success : colors.textMuted,
       ),
     );
   }

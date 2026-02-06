@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/history_view_model.dart';
 import '../../../core/theme/theme_provider.dart';
@@ -564,7 +565,21 @@ class _DayDetails extends StatelessWidget {
           style: TextStyle(fontSize: 15, color: colors.textSecondary),
         ),
         const SizedBox(height: 20),
-        ...day.activeZones.map((zone) => _buildTaskDetailCard(context, day, zone, colors)),
+        Container(
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < day.activeZones.length; i++) ...[
+                if (i > 0) Divider(height: 1, color: colors.border.withAlpha(50), indent: 16, endIndent: 16),
+                _buildTaskDetailRow(context, day, day.activeZones[i], colors),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -584,48 +599,40 @@ class _DayDetails extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskDetailCard(BuildContext context, WorkoutDay day, ZoneType zone, AppColors colors) {
+  Widget _buildTaskDetailRow(BuildContext context, WorkoutDay day, ZoneType zone, AppColors colors) {
     final isCompleted = day.isZoneCompleted(zone);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colors.card,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
-              child: Center(child: Icon(_getZoneIcon(zone), size: 20, color: colors.textPrimary)),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
+            child: Center(child: Icon(_getZoneIcon(zone), size: 20, color: colors.textPrimary)),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getZoneLabel(context, zone),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: colors.textPrimary),
+                ),
+                Text(
+                  isCompleted ? AppLocalizations.of(context)!.completed : AppLocalizations.of(context)!.pending,
+                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getZoneLabel(context, zone),
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: colors.textPrimary),
-                  ),
-                  Text(
-                    isCompleted ? AppLocalizations.of(context)!.completed : AppLocalizations.of(context)!.pending,
-                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              isCompleted ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.circle,
-              color: isCompleted ? colors.success : colors.textMuted,
-              size: 24,
-            ),
-          ],
-        ),
+          ),
+          Icon(
+            isCompleted ? CupertinoIcons.checkmark_circle_fill : CupertinoIcons.circle,
+            color: isCompleted ? colors.success : colors.textMuted,
+            size: 24,
+          ),
+        ],
       ),
     );
   }

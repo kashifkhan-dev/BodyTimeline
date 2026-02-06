@@ -4,6 +4,7 @@ import 'today/today_screen.dart';
 import 'history/history_screen.dart';
 import 'progress/progress_screen.dart';
 import 'settings/settings_screen.dart';
+import 'package:workout/l10n/generated/app_localizations.dart';
 
 class MainShellIOS extends StatefulWidget {
   const MainShellIOS({super.key});
@@ -39,11 +40,11 @@ class _MainShellIOSState extends State<MainShellIOS> {
                   _currentIndex = index;
                 });
               },
-              items: const [
-                CNTabBarItem(icon: CNSymbol('clock.fill'), label: 'Today'),
-                CNTabBarItem(icon: CNSymbol('calendar'), label: 'History'),
-                CNTabBarItem(icon: CNSymbol('chart.bar.fill'), label: 'Progress'),
-                CNTabBarItem(icon: CNSymbol('gearshape.fill'), label: 'Settings'),
+              items: [
+                CNTabBarItem(icon: const CNSymbol('clock.fill'), label: AppLocalizations.of(context)!.today),
+                CNTabBarItem(icon: const CNSymbol('calendar'), label: AppLocalizations.of(context)!.history),
+                CNTabBarItem(icon: const CNSymbol('chart.bar.fill'), label: AppLocalizations.of(context)!.progress),
+                CNTabBarItem(icon: const CNSymbol('gearshape.fill'), label: AppLocalizations.of(context)!.settings),
               ],
             ),
           ),
