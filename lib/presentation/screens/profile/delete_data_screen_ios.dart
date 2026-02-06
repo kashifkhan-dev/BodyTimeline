@@ -124,13 +124,14 @@ class _DeleteDataScreenIOSState extends State<DeleteDataScreenIOS> {
     await vm.deleteAllData();
 
     if (mounted) {
-      context.read<TodayViewModel>().refresh();
+      context.read<TodayViewModel>().onScreenVisible();
       context.read<HistoryViewModel>().refresh();
       context.read<ProgressViewModel>().refresh();
       context.read<StatsViewModel>().clearCache();
       context.read<SettingsViewModel>().loadConfig();
 
       Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.allDataCleared)));
     }
   }
 }

@@ -31,7 +31,7 @@ class TodayScreenAndroid extends StatefulWidget {
 }
 
 class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
-  final Set<ZoneType> _localCompletedZones = {};
+  // No local state needed, using TodayViewModel
 
   void _showSheet(ActiveSheet sheet) {
     showModalBottomSheet(
@@ -87,13 +87,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
 
     final enabledZones = today.activeZones.where((z) => config.isEnabled(z)).toList();
     final int totalZones = enabledZones.length;
-    final int localCompletedCount = enabledZones.where((z) {
-      if (z == ZoneType.macronutrients || z == ZoneType.measurements) {
-        return today.isZoneCompleted(z);
-      }
-      return _localCompletedZones.contains(z);
-    }).length;
-    final completion = totalZones > 0 ? localCompletedCount / totalZones : 1.0;
+    final completion = vm.completionPercentage;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -121,11 +115,11 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
             if (activePhotoZones.isNotEmpty) ...[
               _buildSectionHeader(
                 title: AppLocalizations.of(context)!.todaysTasks,
-                subtext: _getTasksRemainingText(context, today, config, isTaskOnly: true),
+                subtext: _getTasksRemainingText(context, vm, today, config, isTaskOnly: true),
                 colors: colors,
               ),
               const SizedBox(height: 12),
-              ...activePhotoZones.map((zone) => _buildTaskCard(context, colors, today, zone)),
+              ...activePhotoZones.map((zone) => _buildTaskCard(context, colors, vm, today, zone)),
               const SizedBox(height: 32),
             ],
 
@@ -257,7 +251,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
 
   Widget _buildAvatarImage(String? path) {
     if (path == null) {
-      return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      return Image.asset('assets/images/front.png', fit: BoxFit.cover);
     }
     if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
@@ -266,7 +260,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
       File(path),
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+        return Image.asset('assets/images/front.png', fit: BoxFit.cover);
       },
     );
   }
@@ -352,8 +346,9 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
     );
   }
 
-  Widget _buildTaskCard(BuildContext context, AppColors colors, WorkoutDay day, ZoneType zone) {
-    final isCompleted = _localCompletedZones.contains(zone);
+  Widget _buildTaskCard(BuildContext context, AppColors colors, TodayViewModel vm, WorkoutDay day, ZoneType zone) {
+    final photo = vm.getSessionPhoto(zone);
+    final isCompleted = vm.isZoneCompleted(zone);
 
     return Card(
       elevation: 0,
@@ -377,9 +372,9 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
         ),
         subtitle: Text(
-          isCompleted
+          isCompleted && photo != null
               ? AppLocalizations.of(context)!.capturedAt(
-                  '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+                  '${photo.capturedAt.hour.toString().padLeft(2, '0')}:${photo.capturedAt.minute.toString().padLeft(2, '0')}',
                 )
               : _getZoneSubtitle(context, zone),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
@@ -388,20 +383,21 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.check_circle, size: 28, color: Colors.green),
+                  Icon(Icons.check_circle, size: 28, color: colors.success),
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.flip_camera_ios),
-                    onPressed: () => CameraScreen.show(context, zone),
+                    onPressed: () async {
+                      await CameraScreen.show(context, zone);
+                      vm.refresh();
+                    },
                   ),
                 ],
               )
             : ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _localCompletedZones.add(zone);
-                  });
-                  CameraScreen.show(context, zone);
+                onPressed: () async {
+                  await CameraScreen.show(context, zone);
+                  vm.refresh();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primary,
@@ -484,6 +480,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
 
   String _getTasksRemainingText(
     BuildContext context,
+    TodayViewModel vm,
     WorkoutDay day,
     TrackingConfig config, {
     bool isTaskOnly = false,
@@ -495,12 +492,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
         : day.activeZones.where((z) => config.isEnabled(z));
 
     final total = zones.length;
-    final completed = zones.where((z) {
-      if (z == ZoneType.macronutrients || z == ZoneType.measurements) {
-        return day.isZoneCompleted(z);
-      }
-      return _localCompletedZones.contains(z);
-    }).length;
+    final completed = zones.where((z) => vm.isZoneCompleted(z)).length;
     final remaining = total - completed;
 
     return AppLocalizations.of(context)!.tasksRemaining(remaining, total);

@@ -568,6 +568,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get additionalTracking => 'Rastreo Adicional';
 
   @override
+  String get automation => 'Automatización';
+
+  @override
+  String get useLatestPhotoAsAvatar => 'Usar última foto como avatar';
+
+  @override
   String get appearance => 'Apariencia';
 
   @override

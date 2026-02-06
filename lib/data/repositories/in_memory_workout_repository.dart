@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../../domain/entities/workout_day.dart';
 import '../../domain/entities/photo_record.dart';
 import '../../domain/entities/measurement.dart';
@@ -5,38 +6,40 @@ import '../../domain/entities/macro_log.dart';
 import '../../domain/value_objects/zone_type.dart';
 import '../../domain/repositories/workout_repository.dart';
 import '../datasources/in_memory_store.dart';
-import '../mock/mock_day_generator.dart';
 
 class InMemoryWorkoutRepository implements WorkoutRepository {
   final InMemoryStore _store;
+  final DateTime _baseDate;
+  final StreamController<void> _changesController = StreamController<void>.broadcast();
 
-  InMemoryWorkoutRepository(this._store) {
-    // ALWAYS re-populate in development to ensure any changes in the
-    // MockDayGenerator (like the new variable completion factor)
-    // are applied immediately to the heatmap.
-    _prePopulate();
+  // Tracks number of saves per parameter to support independent timelines
+  final Map<ZoneType, int> _parameterCounts = {};
+
+  InMemoryWorkoutRepository(this._store) : _baseDate = DateTime.now().subtract(const Duration(days: 30));
+
+  @override
+  Stream<void> get changes => _changesController.stream;
+
+  DateTime _getTargetDateForParameter(ZoneType type) {
+    final count = _parameterCounts[type] ?? 0;
+    return _baseDate.add(Duration(days: count));
   }
 
-  void _prePopulate() {
-    // Clear existing to avoid weird merges if any exist
-    _store.days.clear();
+  void _incrementCount(ZoneType type) {
+    _parameterCounts[type] = (_parameterCounts[type] ?? 0) + 1;
+  }
 
-    final history = MockDayGenerator.generateHistory(daysToGenerate: 90, config: _store.currentConfig);
-    for (final day in history) {
-      _store.days[_store.dateToKey(day.date)] = day;
+  Future<WorkoutDay> _getOrCreateDay(DateTime date) async {
+    final key = _store.dateToKey(date);
+    if (!_store.days.containsKey(key)) {
+      _store.days[key] = WorkoutDay(date: date, activeZones: _store.currentConfig.enabledZones.toList());
     }
+    return _store.days[key]!;
   }
 
   @override
   Future<WorkoutDay?> getDay(DateTime date) async {
     final key = _store.dateToKey(date);
-    if (!_store.days.containsKey(key)) {
-      // Auto-create for Today if requested, or just return a fresh one
-      final isFuture = date.isAfter(DateTime.now().add(const Duration(minutes: 1)));
-      if (!isFuture) {
-        _store.days[key] = WorkoutDay(date: date, activeZones: _store.currentConfig.enabledZones.toList());
-      }
-    }
     return _store.days[key];
   }
 
@@ -48,48 +51,57 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
 
   @override
   Future<void> savePhoto(DateTime date, PhotoRecord photo) async {
-    final day = await getDay(date);
-    if (day != null) {
-      final updatedPhotos = List<PhotoRecord>.from(day.photos)
-        ..removeWhere((p) => p.zoneType == photo.zoneType) // Replace existing for same zone
-        ..add(photo);
+    final targetDate = _getTargetDateForParameter(photo.zoneType);
+    final day = await _getOrCreateDay(targetDate);
 
-      _store.days[_store.dateToKey(date)] = WorkoutDay(
-        date: day.date,
-        photos: updatedPhotos,
-        measurements: day.measurements,
-        macros: day.macros,
-        activeZones: day.activeZones,
-      );
-    }
+    // Merge photo into the day
+    final updatedPhotos = List<PhotoRecord>.from(day.photos)..add(photo);
+    _store.days[_store.dateToKey(targetDate)] = WorkoutDay(
+      date: targetDate,
+      photos: updatedPhotos,
+      measurements: day.measurements,
+      macros: day.macros,
+      activeZones: day.activeZones,
+    );
+
+    _incrementCount(photo.zoneType);
+    _changesController.add(null);
   }
 
   @override
   Future<void> saveMeasurements(DateTime date, List<Measurement> measurements) async {
-    final day = await getDay(date);
-    if (day != null) {
-      _store.days[_store.dateToKey(date)] = WorkoutDay(
-        date: day.date,
-        photos: day.photos,
-        measurements: measurements,
-        macros: day.macros,
-        activeZones: day.activeZones,
-      );
-    }
+    final type = ZoneType.measurements;
+    final targetDate = _getTargetDateForParameter(type);
+    final day = await _getOrCreateDay(targetDate);
+
+    _store.days[_store.dateToKey(targetDate)] = WorkoutDay(
+      date: targetDate,
+      photos: day.photos,
+      measurements: measurements,
+      macros: day.macros,
+      activeZones: day.activeZones,
+    );
+
+    _incrementCount(type);
+    _changesController.add(null);
   }
 
   @override
   Future<void> saveMacros(DateTime date, MacroLog macros) async {
-    final day = await getDay(date);
-    if (day != null) {
-      _store.days[_store.dateToKey(date)] = WorkoutDay(
-        date: day.date,
-        photos: day.photos,
-        measurements: day.measurements,
-        macros: macros,
-        activeZones: day.activeZones,
-      );
-    }
+    final type = ZoneType.macronutrients;
+    final targetDate = _getTargetDateForParameter(type);
+    final day = await _getOrCreateDay(targetDate);
+
+    _store.days[_store.dateToKey(targetDate)] = WorkoutDay(
+      date: targetDate,
+      photos: day.photos,
+      measurements: day.measurements,
+      macros: macros,
+      activeZones: day.activeZones,
+    );
+
+    _incrementCount(type);
+    _changesController.add(null);
   }
 
   @override
@@ -111,6 +123,8 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
   @override
   Future<void> deleteAllData() async {
     _store.clearAll();
+    _parameterCounts.clear();
+    _changesController.add(null);
   }
 }
 

@@ -1,24 +1,44 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/workout_day.dart';
 import '../../domain/repositories/workout_repository.dart';
+import '../../domain/repositories/settings_repository.dart';
 
 import '../../domain/value_objects/zone_type.dart';
 import '../../domain/entities/photo_record.dart';
+import '../../domain/entities/tracking_config.dart';
 
 class ProgressViewModel extends ChangeNotifier {
   final WorkoutRepository _workoutRepository;
-
+  final SettingsRepository _settingsRepository;
   List<WorkoutDay> _history = [];
   bool _isLoading = true;
   ZoneType _selectedZone = ZoneType.face;
+  TrackingConfig? _config;
 
-  ProgressViewModel(this._workoutRepository) {
+  ProgressViewModel(this._workoutRepository, this._settingsRepository) {
+    _subscriptions.add(_workoutRepository.changes.listen((_) => refresh()));
+    _subscriptions.add(_settingsRepository.changes.listen((_) => refresh()));
     refresh();
   }
 
   List<WorkoutDay> get history => _history;
   bool get isLoading => _isLoading;
   ZoneType get selectedZone => _selectedZone;
+
+  Set<ZoneType> get availableZones {
+    if (_config == null) return {};
+
+    // Filter to only Photo zones that are enabled
+    final set = _config!.enabledZones.intersection({
+      ZoneType.face,
+      ZoneType.bodyFront,
+      ZoneType.bodySide,
+      ZoneType.bodyBack,
+    });
+
+    return set;
+  }
 
   void setSelectedZone(ZoneType zone) {
     if (_selectedZone != zone) {
@@ -30,36 +50,28 @@ class ProgressViewModel extends ChangeNotifier {
   int get currentStreak {
     if (_history.isEmpty) return 0;
 
-    // Sort descending for streak calculation (newest first)
+    // Sort descending (newest first)
     final sorted = List<WorkoutDay>.from(_history)..sort((a, b) => b.date.compareTo(a.date));
 
-    int streak = 0;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    DateTime expectedDate = today;
+    // Based on PRD: "Streak: Based on consecutive shifted days. Breaks only if user stops saving."
+    // Since we are time-shifting, the "Latest" day is our "Today".
+    // We just count backwards from the newest record.
 
-    // Check if the latest entry is today or yesterday
-    final latestDate = DateTime(sorted[0].date.year, sorted[0].date.month, sorted[0].date.day);
-    if (latestDate.isBefore(today.subtract(const Duration(days: 1)))) {
-      return 0;
-    }
+    int streak = 1; // Start with 1 for the latest day
+    DateTime currentDate = sorted[0].date;
 
-    if (latestDate == today.subtract(const Duration(days: 1))) {
-      expectedDate = latestDate;
-    }
+    // Check backwards
+    for (int i = 1; i < sorted.length; i++) {
+      final prevDate = sorted[i].date;
 
-    for (var day in sorted) {
-      final dayDate = DateTime(day.date.year, day.date.month, day.date.day);
+      // Calculate difference in days.
+      // Since days are generated at same time, compare YMD.
+      final diff = currentDate.difference(prevDate).inDays;
 
-      if (dayDate == expectedDate) {
-        if (day.isCompleted) {
-          streak++;
-          expectedDate = expectedDate.subtract(const Duration(days: 1));
-        } else {
-          break;
-        }
-      } else if (dayDate.isBefore(expectedDate)) {
-        // Gap found
+      if (diff == 1) {
+        streak++;
+        currentDate = prevDate;
+      } else {
         break;
       }
     }
@@ -67,55 +79,60 @@ class ProgressViewModel extends ChangeNotifier {
   }
 
   int get totalCompletedDays {
-    return _history.where((d) => d.isCompleted).length;
+    // "Completed Days: Count = number of saved shifted days"
+    return _history.length;
   }
 
-  List<String> get photoPaths {
-    // Collect all real photo records for the selected zone
-    final List<PhotoRecord> realPhotos = [];
+  /// Returns photos for the currently selected zone, sorted by date (oldest first).
+  List<PhotoRecord> get latestPhotos {
+    final List<PhotoRecord> zonePhotos = [];
     for (var day in _history) {
       for (var photo in day.photos) {
         if (photo.zoneType == _selectedZone) {
-          realPhotos.add(photo);
+          zonePhotos.add(photo);
         }
       }
     }
 
-    // Sort real photos by date
-    realPhotos.sort((a, b) => a.capturedAt.compareTo(b.capturedAt));
+    // Sort by date ascending (Old -> New)
+    zonePhotos.sort((a, b) => a.capturedAt.compareTo(b.capturedAt));
 
-    if (realPhotos.isNotEmpty) {
-      return realPhotos.map((p) => p.filePath).toList();
-    }
-
-    // FALLBACK: Mock images (1.png to 19.png)
-    return List.generate(19, (index) => 'assets/images/transformation/${index + 1}.png');
-  }
-
-  List<DateTime> get photoDates {
-    final List<DateTime> dates = [];
-    for (var day in _history) {
-      for (var photo in day.photos) {
-        if (photo.zoneType == _selectedZone) {
-          dates.add(photo.capturedAt);
-        }
-      }
-    }
-    dates.sort();
-
-    if (dates.isNotEmpty) return dates;
-
-    // Fallback dates for mock images: starting from 19 days ago
-    final now = DateTime.now();
-    return List.generate(19, (index) => now.subtract(Duration(days: 18 - index)));
+    return zonePhotos;
   }
 
   Future<void> refresh() async {
-    _isLoading = true;
-    notifyListeners();
+    // We don't want to show loading spinner for background updates
+    if (_history.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
 
-    _history = await _workoutRepository.getAllDays();
-    _isLoading = false;
-    notifyListeners();
+    try {
+      _config = await _settingsRepository.getConfig();
+
+      // Ensure selected zone is still valid, else switch to first available
+      if (!availableZones.contains(_selectedZone)) {
+        if (availableZones.isNotEmpty) {
+          _selectedZone = availableZones.first;
+        }
+      }
+
+      _history = await _workoutRepository.getAllDays();
+    } catch (e) {
+      debugPrint("Error loading progress: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  final List<StreamSubscription> _subscriptions = [];
+
+  @override
+  void dispose() {
+    for (var s in _subscriptions) {
+      s.cancel();
+    }
+    super.dispose();
   }
 }

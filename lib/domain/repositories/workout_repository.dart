@@ -5,6 +5,7 @@ import '../entities/measurement.dart';
 import '../entities/macro_log.dart';
 
 abstract class WorkoutRepository {
+  Stream<void> get changes;
   Future<WorkoutDay?> getDay(DateTime date);
   Future<List<WorkoutDay>> getAllDays();
   Future<void> savePhoto(DateTime date, PhotoRecord photo);

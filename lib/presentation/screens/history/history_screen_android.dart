@@ -59,8 +59,6 @@ class HistoryScreenAndroid extends StatelessWidget {
                   const SizedBox(height: 16),
                   _WeekSelector(vm: vm, colors: colors),
                   const SizedBox(height: 32),
-                  _DayDetails(vm: vm, colors: colors),
-                  const SizedBox(height: 48),
                   _buildSectionTitle(AppLocalizations.of(context)!.streak, colors),
                   const SizedBox(height: 12),
                   _buildStreakHero(context, vm, colors),
@@ -76,6 +74,8 @@ class HistoryScreenAndroid extends StatelessWidget {
                   _buildSectionTitle(AppLocalizations.of(context)!.measurementsOverview, colors),
                   const SizedBox(height: 12),
                   _buildMeasurementsOverview(context, vm, colors),
+                  const SizedBox(height: 48),
+                  _DayDetails(vm: vm, colors: colors),
                   const SizedBox(height: 120),
                 ],
               ),
@@ -615,39 +615,50 @@ class _GithubHeatmap extends StatelessWidget {
     final firstDay = DateTime(year, 1, 1);
     final int sunOffset = firstDay.weekday == 7 ? 0 : firstDay.weekday;
     final gridStartDate = firstDay.subtract(Duration(days: sunOffset));
-    final weeksCount = 53;
+    const weeksCount = 53;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 32), // Space for month labels
             _buildDayLabel(AppLocalizations.of(context)!.mon[0]),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             _buildDayLabel(AppLocalizations.of(context)!.wed[0]),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             _buildDayLabel(AppLocalizations.of(context)!.fri[0]),
           ],
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(weeksCount, (wIdx) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 1.5),
-                  child: Column(
-                    children: List.generate(7, (dIdx) {
-                      final date = gridStartDate.add(Duration(days: wIdx * 7 + dIdx));
-                      if (date.year != year) return _buildCell(Colors.transparent);
-                      final completion = vm.getCompletionForDate(date);
-                      return _buildCell(_getCellColor(completion));
-                    }),
-                  ),
-                );
-              }),
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildMonthLabels(context, gridStartDate, weeksCount),
+                const SizedBox(height: 8),
+                Row(
+                  children: List.generate(weeksCount, (wIdx) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                      child: Column(
+                        children: List.generate(7, (dIdx) {
+                          final date = gridStartDate.add(Duration(days: wIdx * 7 + dIdx));
+                          if (date.year != year) {
+                            return _buildCell(Colors.transparent);
+                          }
+                          final completion = vm.getCompletionForDate(date);
+                          return _buildCell(_getCellColor(completion));
+                        }),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
           ),
         ),
@@ -655,16 +666,82 @@ class _GithubHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildDayLabel(String label) => Text(label, style: TextStyle(fontSize: 10, color: colors.textMuted));
+  Widget _buildMonthLabels(BuildContext context, DateTime gridStartDate, int weeksCount) {
+    final l10n = AppLocalizations.of(context)!;
+    final monthNames = [
+      l10n.jan,
+      l10n.feb,
+      l10n.mar,
+      l10n.apr,
+      l10n.may,
+      l10n.jun,
+      l10n.jul,
+      l10n.aug,
+      l10n.sep,
+      l10n.oct,
+      l10n.nov,
+      l10n.dec,
+    ];
+    final List<Widget> labels = [];
+    int lastMonth = -1;
+
+    for (int i = 0; i < weeksCount; i++) {
+      final date = gridStartDate.add(Duration(days: i * 7 + 3));
+      if (date.month != lastMonth && date.year == year) {
+        labels.add(
+          Positioned(
+            left: i * 15.0,
+            child: Text(
+              monthNames[date.month - 1],
+              style: TextStyle(fontSize: 10, color: colors.textMuted, fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+        lastMonth = date.month;
+      }
+    }
+
+    return SizedBox(
+      height: 20,
+      width: weeksCount * 15.0,
+      child: Stack(clipBehavior: Clip.none, children: labels),
+    );
+  }
+
+  Widget _buildDayLabel(String label) => SizedBox(
+    height: 12,
+    child: Center(
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, color: colors.textMuted, fontWeight: FontWeight.bold),
+      ),
+    ),
+  );
+
   Widget _buildCell(Color color) => Container(
     width: 12,
     height: 12,
-    margin: const EdgeInsets.symmetric(vertical: 1),
+    margin: const EdgeInsets.symmetric(vertical: 1.5),
     decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
   );
 
   Color _getCellColor(double completion) {
-    if (completion <= 0) return colors.brightness == Brightness.light ? Colors.grey[200]! : Colors.white10;
-    return colors.primary.withValues(alpha: completion.clamp(0.2, 1.0));
+    if (completion <= 0) {
+      return colors.brightness == Brightness.light ? const Color(0xFFF3F4F6) : colors.surface;
+    }
+
+    if (colors.brightness == Brightness.light) {
+      if (completion < 0.25) return const Color(0xFFD1FAE5);
+      if (completion < 0.50) return const Color(0xFF6EE7B7);
+      if (completion < 0.75) return const Color(0xFF34D399);
+      if (completion < 1.0) return const Color(0xFF10B981);
+      return const Color(0xFF064E3B);
+    } else {
+      if (completion < 0.25) return colors.primary.withAlpha(40);
+      if (completion < 0.50) return colors.primary.withAlpha(100);
+      if (completion < 0.75) return colors.primary.withAlpha(160);
+      if (completion < 1.0) return colors.primary.withAlpha(220);
+      return colors.primary;
+    }
   }
 }

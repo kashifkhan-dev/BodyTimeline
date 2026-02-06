@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show LinearProgressIndicator, AlwaysStoppedAnimation;
+import 'package:flutter/material.dart' show LinearProgressIndicator, AlwaysStoppedAnimation, Colors;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cupertino_native/cupertino_native.dart';
@@ -14,61 +14,81 @@ import '../../view_models/progress_view_model.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import '../../../domain/value_objects/zone_type.dart';
+import '../../../domain/entities/photo_record.dart';
 import '../../widgets/timelapse_overlay.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
 
-class ProgressScreenIOS extends StatelessWidget {
+class ProgressScreenIOS extends StatefulWidget {
   const ProgressScreenIOS({super.key});
+
+  @override
+  State<ProgressScreenIOS> createState() => _ProgressScreenIOSState();
+}
+
+class _ProgressScreenIOSState extends State<ProgressScreenIOS> {
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    final vm = context.read<ProgressViewModel>();
+    final zones = vm.availableZones.toList()..sort((a, b) => a.index.compareTo(b.index));
+    final initialIndex = zones.indexOf(vm.selectedZone);
+    _pageController = PageController(initialPage: initialIndex != -1 ? initialIndex : 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ProgressViewModel>();
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
-
-    final List<String> photos;
-    final List<DateTime> dates;
-
-    if (vm.selectedZone == ZoneType.face) {
-      photos = ['assets/images/face/face1.png', 'assets/images/face/face2.png'];
-      final allDates = vm.photoDates;
-      dates = allDates.length >= 2 ? [allDates.first, allDates.last] : allDates;
-    } else {
-      photos = List.generate(19, (i) => 'assets/images/transformation/${i + 1}.png');
-      dates = vm.photoDates;
-    }
+    final zones = vm.availableZones.toList()..sort((a, b) => a.index.compareTo(b.index));
 
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            largeTitle: Text(AppLocalizations.of(context)!.yourProgress, style: TextStyle(color: colors.textPrimary)),
-            backgroundColor: colors.background.withAlpha(200),
-            border: Border(bottom: BorderSide(color: colors.border)),
-          ),
-          if (vm.isLoading)
-            SliverFillRemaining(
-              child: Center(child: CupertinoActivityIndicator(color: colors.primary)),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildStatsRow(context, vm, colors),
-                  const SizedBox(height: 24),
-                  _buildZoneSelector(context, vm, colors),
-                  const SizedBox(height: 32),
-                  _buildBeforeAfterSection(context, photos, dates, colors),
-                  const SizedBox(height: 32),
-                  _buildTimelineSection(context, photos, colors),
-                  const SizedBox(height: 120),
-                ]),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(AppLocalizations.of(context)!.yourProgress, style: TextStyle(color: colors.textPrimary)),
+        backgroundColor: colors.background.withAlpha(200),
+        border: Border(bottom: BorderSide(color: colors.border)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 0), child: _buildStatsRow(context, vm, colors)),
+            if (zones.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: _buildZoneSelector(context, vm, zones, colors),
               ),
-            ),
-        ],
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: zones.length,
+                  onPageChanged: (index) {
+                    vm.setSelectedZone(zones[index]);
+                  },
+                  itemBuilder: (context, index) {
+                    return _ZonePage(
+                      zone: zones[index],
+                      colors: colors,
+                      onExport: (photos) => _showExportOptions(context, photos.map((p) => p.filePath).toList(), colors),
+                    );
+                  },
+                ),
+              ),
+            ] else if (vm.isLoading)
+              const Expanded(child: Center(child: CupertinoActivityIndicator()))
+            else
+              Expanded(child: _buildEmptyState(AppLocalizations.of(context)!.noPhotosZone, colors)),
+          ],
+        ),
       ),
     );
   }
@@ -123,208 +143,60 @@ class ProgressScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildZoneSelector(BuildContext context, ProgressViewModel vm, AppColors colors) {
+  Widget _buildZoneSelector(BuildContext context, ProgressViewModel vm, List<ZoneType> zones, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildZoneSegment(
-              label: AppLocalizations.of(context)!.facePhoto,
-              isActive: vm.selectedZone == ZoneType.face,
-              onTap: () => vm.setSelectedZone(ZoneType.face),
-              colors: colors,
-            ),
-          ),
-          Expanded(
-            child: _buildZoneSegment(
-              label: AppLocalizations.of(context)!.bodyFrontPhoto,
-              isActive: vm.selectedZone == ZoneType.bodyFront,
-              onTap: () => vm.setSelectedZone(ZoneType.bodyFront),
-              colors: colors,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: zones.map((zone) {
+            String label = _getZoneLabel(context, zone);
+            final isSelected = vm.selectedZone == zone;
 
-  Widget _buildZoneSegment({
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-    required AppColors colors,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive ? colors.textPrimary : CupertinoColors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isActive ? colors.card : colors.textPrimary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBeforeAfterSection(BuildContext context, List<String> photos, List<DateTime> dates, AppColors colors) {
-    if (photos.isEmpty) return _buildEmptyState(AppLocalizations.of(context)!.noPhotosZone, colors);
-    final beforeImage = photos.first;
-    final afterImage = photos.last;
-    final beforeDate = dates.first;
-    final afterDate = dates.last;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.beforeAfter,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
-            ),
-            Text(AppLocalizations.of(context)!.viewDifference, style: TextStyle(fontSize: 14, color: colors.textMuted)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: colors.card,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: colors.textPrimary.withAlpha(5), blurRadius: 15, offset: const Offset(0, 8))],
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildComparisonImage(
-                      context,
-                      beforeImage,
-                      AppLocalizations.of(context)!.before,
-                      beforeDate,
-                      colors,
-                    ),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: CupertinoButton(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: isSelected ? colors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                onPressed: () {
+                  final index = zones.indexOf(zone);
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? Colors.black : colors.textSecondary,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildComparisonImage(
-                      context,
-                      afterImage,
-                      AppLocalizations.of(context)!.today,
-                      afterDate,
-                      colors,
-                    ),
-                  ),
-                ],
+                ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: CNButton(
-                      label: AppLocalizations.of(context)!.timelapse,
-                      onPressed: () => showCupertinoModalPopup(
-                        context: context,
-                        builder: (context) => TimelapseOverlay(images: photos, dates: dates),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: CNButton(
-                      label: AppLocalizations.of(context)!.exportVideo,
-                      onPressed: () => _showExportOptions(context, photos, colors),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildComparisonImage(BuildContext context, String path, String label, DateTime date, AppColors colors) {
-    final isAsset = path.startsWith('assets/');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: AspectRatio(
-            aspectRatio: 3 / 4,
-            child: isAsset ? Image.asset(path, fit: BoxFit.cover) : Image.file(File(path), fit: BoxFit.cover),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colors.textPrimary),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          '${date.day} ${_getMonthName(context, date.month)}',
-          style: TextStyle(fontSize: 11, color: colors.textSecondary),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTimelineSection(BuildContext context, List<String> photos, AppColors colors) {
-    if (photos.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.timeline,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
-            ),
-            Text(
-              AppLocalizations.of(context)!.photosCount(photos.length),
-              style: TextStyle(fontSize: 14, color: colors.textSecondary),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 3 / 4,
-          ),
-          itemCount: photos.length,
-          itemBuilder: (context, index) {
-            final path = photos[index];
-            final isAsset = path.startsWith('assets/');
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: isAsset ? Image.asset(path, fit: BoxFit.cover) : Image.file(File(path), fit: BoxFit.cover),
             );
-          },
+          }).toList(),
         ),
-      ],
+      ),
     );
+  }
+
+  String _getZoneLabel(BuildContext context, ZoneType zone) {
+    switch (zone) {
+      case ZoneType.face:
+        return AppLocalizations.of(context)!.face;
+      case ZoneType.bodyFront:
+        return AppLocalizations.of(context)!.bodyFront;
+      case ZoneType.bodySide:
+        return AppLocalizations.of(context)!.bodySide;
+      case ZoneType.bodyBack:
+        return AppLocalizations.of(context)!.bodyBack;
+      default:
+        return '';
+    }
   }
 
   Widget _buildEmptyState(String message, AppColors colors) {
@@ -332,6 +204,7 @@ class ProgressScreenIOS extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 40),
       alignment: Alignment.center,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(CupertinoIcons.photo_on_rectangle, size: 48, color: colors.textMuted),
           const SizedBox(height: 16),
@@ -343,25 +216,6 @@ class ProgressScreenIOS extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getMonthName(BuildContext context, int month) {
-    final l10n = AppLocalizations.of(context)!;
-    final months = [
-      l10n.jan,
-      l10n.feb,
-      l10n.mar,
-      l10n.apr,
-      l10n.may,
-      l10n.jun,
-      l10n.jul,
-      l10n.aug,
-      l10n.sep,
-      l10n.oct,
-      l10n.nov,
-      l10n.dec,
-    ];
-    return months[month - 1];
   }
 
   void _showExportOptions(BuildContext context, List<String> photos, AppColors colors) {
@@ -408,6 +262,218 @@ class ProgressScreenIOS extends StatelessWidget {
       barrierDismissible: false,
       builder: (context) =>
           _ExportProgressOverlayIOS(qualityName: qualityName, height: height, photos: photos, colors: colors),
+    );
+  }
+}
+
+class _ZonePage extends StatefulWidget {
+  final ZoneType zone;
+  final AppColors colors;
+  final Function(List<PhotoRecord>) onExport;
+
+  const _ZonePage({required this.zone, required this.colors, required this.onExport});
+
+  @override
+  State<_ZonePage> createState() => _ZonePageState();
+}
+
+class _ZonePageState extends State<_ZonePage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final vm = context.watch<ProgressViewModel>();
+
+    // Extract photos for this specific zone
+    final history = vm.history;
+    final List<PhotoRecord> photos = [];
+    for (var day in history) {
+      for (var photo in day.photos) {
+        if (photo.zoneType == widget.zone) {
+          photos.add(photo);
+        }
+      }
+    }
+    photos.sort((a, b) => a.capturedAt.compareTo(b.capturedAt));
+
+    if (photos.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(CupertinoIcons.photo, size: 48, color: widget.colors.textMuted),
+            const SizedBox(height: 16),
+            Text(AppLocalizations.of(context)!.noPhotosZone, style: TextStyle(color: widget.colors.textSecondary)),
+          ],
+        ),
+      );
+    }
+
+    final int startIndex = (photos.length > 20) ? photos.length - 20 : 0;
+    final timelinePhotos = photos.sublist(startIndex);
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      children: [
+        _buildBeforeAfterSection(context, photos, widget.colors),
+        const SizedBox(height: 32),
+        _buildTimelineSection(context, timelinePhotos, widget.colors),
+        const SizedBox(height: 100),
+      ],
+    );
+  }
+
+  Widget _buildBeforeAfterSection(BuildContext context, List<PhotoRecord> photos, AppColors colors) {
+    final before = photos.first;
+    final after = photos.last;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.beforeAfter,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                TimelapseOverlay.show(context, photos);
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(AppLocalizations.of(context)!.timelapse, style: TextStyle(color: colors.primary, fontSize: 16)),
+                  const SizedBox(width: 4),
+                  Icon(CupertinoIcons.play_circle_fill, color: colors.primary, size: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(child: _buildComparisonCard(context, AppLocalizations.of(context)!.before, before, colors)),
+            const SizedBox(width: 12),
+            Expanded(child: _buildComparisonCard(context, AppLocalizations.of(context)!.after, after, colors)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        CNButton(label: AppLocalizations.of(context)!.exportVideo, onPressed: () => widget.onExport(photos)),
+      ],
+    );
+  }
+
+  Widget _buildComparisonCard(BuildContext context, String label, PhotoRecord photo, AppColors colors) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 3 / 4,
+            child: photo.filePath.startsWith('assets/')
+                ? Image.asset(photo.filePath, fit: BoxFit.cover)
+                : Image.file(File(photo.filePath), fit: BoxFit.cover),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 13, color: colors.textMuted, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _formatRelativeDate(context, photo.capturedAt),
+                  style: TextStyle(fontSize: 14, color: colors.textPrimary, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatRelativeDate(BuildContext context, DateTime date) {
+    final day = date.day;
+    final month = _getMonthName(context, date.month);
+    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$day $month $hour:$minute $period';
+  }
+
+  String _getMonthName(BuildContext context, int month) {
+    final l10n = AppLocalizations.of(context)!;
+    final months = [
+      l10n.jan,
+      l10n.feb,
+      l10n.mar,
+      l10n.apr,
+      l10n.may,
+      l10n.jun,
+      l10n.jul,
+      l10n.aug,
+      l10n.sep,
+      l10n.oct,
+      l10n.nov,
+      l10n.dec,
+    ];
+    return months[month - 1];
+  }
+
+  Widget _buildTimelineSection(BuildContext context, List<PhotoRecord> photos, AppColors colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.timeline,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
+            ),
+            Text(
+              AppLocalizations.of(context)!.photosCount(photos.length),
+              style: TextStyle(fontSize: 14, color: colors.textSecondary),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 3 / 4,
+          ),
+          itemCount: photos.length,
+          itemBuilder: (context, index) {
+            final path = photos[index].filePath;
+            final isAsset = path.startsWith('assets/');
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: isAsset ? Image.asset(path, fit: BoxFit.cover) : Image.file(File(path), fit: BoxFit.cover),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -484,8 +550,17 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
 
       for (int i = 0; i < frameCount; i++) {
         update(AppLocalizations.of(context)!.encodingFrame(i + 1, frameCount));
-        final byteData = await rootBundle.load(widget.photos[i]);
-        final bytes = byteData.buffer.asUint8List();
+
+        // Handle physical file vs asset
+        final path = widget.photos[i];
+        Uint8List bytes;
+        if (path.startsWith('assets/')) {
+          final byteData = await rootBundle.load(path);
+          bytes = byteData.buffer.asUint8List();
+        } else {
+          bytes = await File(path).readAsBytes();
+        }
+
         final original = img.decodeImage(bytes);
         if (original == null) throw Exception('Failed to decode frame $i');
         final frameCanvas = img.Image(width: width, height: widget.height, numChannels: 4);
@@ -518,7 +593,6 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
           _isDone = true;
         });
       }
-      // ignore: deprecated_member_use
       await Share.shareXFiles([XFile(_filePath!)], subject: AppLocalizations.of(context)!.myTransformation);
     } catch (e) {
       if (mounted) {

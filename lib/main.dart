@@ -66,7 +66,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SettingsViewModel(settingsRepo)),
         ChangeNotifierProvider(create: (context) => TodayViewModel(workoutRepo, settingsRepo)),
         ChangeNotifierProvider(create: (context) => HistoryViewModel(workoutRepo)),
-        ChangeNotifierProvider(create: (context) => ProgressViewModel(workoutRepo)),
+        ChangeNotifierProvider(create: (context) => ProgressViewModel(workoutRepo, settingsRepo)),
         ChangeNotifierProvider(create: (context) => StatsViewModel(workoutRepo)),
         ChangeNotifierProvider(create: (context) => ProfileViewModel(userRepo, workoutRepo, settingsRepo)),
         ChangeNotifierProvider(create: (_) => LocaleViewModel(localeRepo)),

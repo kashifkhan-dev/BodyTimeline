@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../domain/repositories/workout_repository.dart';
 import '../../../domain/value_objects/zone_type.dart';
 import '../../view_models/camera_view_model.dart';
+import '../../view_models/today_view_model.dart';
 import '../../widgets/silhouette_painter.dart';
 
 class CameraScreenAndroid extends StatelessWidget {
@@ -38,7 +39,7 @@ class _CameraView extends StatelessWidget {
           else
             const Center(child: CircularProgressIndicator(color: Colors.white)),
 
-          if (vm.initialMode == ZoneType.bodyFront && vm.state == CameraState.idle)
+          if ((vm.initialMode == ZoneType.bodyFront || vm.ghostPhoto != null) && vm.state == CameraState.idle)
             IgnorePointer(child: _buildGhostOverlay(vm)),
 
           if (vm.showGuides && (vm.state == CameraState.idle || vm.state == CameraState.review))
@@ -49,7 +50,7 @@ class _CameraView extends StatelessWidget {
           _buildTopBar(context, vm),
           _buildBottomArea(context, vm),
 
-          if (vm.state == CameraState.review) _buildReviewControls(vm),
+          if (vm.state == CameraState.review) _buildReviewControls(context, vm),
 
           if (vm.state == CameraState.saving)
             Container(
@@ -107,35 +108,71 @@ class _CameraView extends StatelessWidget {
   }
 
   Widget _buildGhostOverlay(CameraViewModel vm) {
-    if (vm.initialMode != ZoneType.bodyFront) return const SizedBox.shrink();
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix([
-        0.2126,
-        0.7152,
-        0.0722,
-        0,
-        0,
-        0.2126,
-        0.7152,
-        0.0722,
-        0,
-        0,
-        0.2126,
-        0.7152,
-        0.0722,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ]),
-      child: Opacity(
+    // Priority 1: Real captured photo
+    if (vm.ghostPhoto != null) {
+      return Opacity(
         opacity: vm.ghostOpacity,
-        child: Image.asset('assets/images/front.png', fit: BoxFit.cover),
-      ),
-    );
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix([
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ]),
+          child: Image.file(File(vm.ghostPhoto!.filePath), fit: BoxFit.cover),
+        ),
+      );
+    }
+
+    // Priority 2: Fallback dummy for Body Front
+    if (vm.initialMode == ZoneType.bodyFront) {
+      return Opacity(
+        opacity: vm.ghostOpacity,
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix([
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ]),
+          child: Image.asset('assets/images/front.png', fit: BoxFit.cover),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildTopBar(BuildContext context, CameraViewModel vm) {
@@ -213,7 +250,7 @@ class _CameraView extends StatelessWidget {
                 ),
               ),
             ),
-            if (vm.initialMode == ZoneType.bodyFront)
+            if (vm.initialMode == ZoneType.bodyFront || vm.ghostPhoto != null)
               Align(
                 alignment: Alignment.centerRight,
                 child: SizedBox(
@@ -246,7 +283,7 @@ class _CameraView extends StatelessWidget {
     );
   }
 
-  Widget _buildReviewControls(CameraViewModel vm) {
+  Widget _buildReviewControls(BuildContext context, CameraViewModel vm) {
     return Positioned(
       bottom: 80,
       left: 0,
@@ -260,7 +297,17 @@ class _CameraView extends StatelessWidget {
             child: const Text('Retake', style: TextStyle(color: Colors.white)),
           ),
           ElevatedButton(
-            onPressed: () => vm.confirm(),
+            onPressed: () async {
+              final todayVm = context.read<TodayViewModel>();
+              await vm.confirm(
+                onSaved: (photo) {
+                  todayVm.saveSessionPhoto(vm.initialMode, photo);
+                },
+              );
+              if (context.mounted && vm.state != CameraState.error) {
+                Navigator.pop(context);
+              }
+            },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD0F288)),
             child: const Text('Use Photo', style: TextStyle(color: Colors.black)),
           ),

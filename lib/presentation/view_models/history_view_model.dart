@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/workout_day.dart';
 import '../../domain/repositories/workout_repository.dart';
@@ -7,6 +8,7 @@ import '../../domain/value_objects/measurement_type.dart';
 
 class HistoryViewModel extends ChangeNotifier {
   final WorkoutRepository _workoutRepository;
+  StreamSubscription? _subscription;
 
   List<WorkoutDay> _history = [];
   bool _isLoading = true;
@@ -25,6 +27,7 @@ class HistoryViewModel extends ChangeNotifier {
   Map<DateTime, double> _completionCache = {};
 
   HistoryViewModel(this._workoutRepository) {
+    _subscription = _workoutRepository.changes.listen((_) => refresh());
     refresh();
   }
 
@@ -67,8 +70,10 @@ class HistoryViewModel extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    _isLoading = true;
-    notifyListeners();
+    if (_history.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
 
     try {
       _history = await _workoutRepository.getAllDays();
@@ -111,11 +116,9 @@ class HistoryViewModel extends ChangeNotifier {
     _activeDaysCount = _history.where((d) => d.completionPercentage > 0).length;
 
     final start = sortedAsc.first.date;
-    final end = DateTime.now();
-    final todayMidnight = DateTime(end.year, end.month, end.day);
-    final startMidnight = DateTime(start.year, start.month, start.day);
-    final totalDays = todayMidnight.difference(startMidnight).inDays + 1;
-    _missedDaysCount = (totalDays - _activeDaysCount).clamp(0, 99999);
+    final end = sortedAsc.last.date;
+    final totalDaysSpan = end.difference(start).inDays + 1;
+    _missedDaysCount = (totalDaysSpan - _activeDaysCount).clamp(0, 99999);
 
     // 6. Averages
     if (_history.isNotEmpty) {
@@ -175,30 +178,19 @@ class HistoryViewModel extends ChangeNotifier {
   int _calculateCurrentStreak(List<WorkoutDay> sortedDesc) {
     if (sortedDesc.isEmpty) return 0;
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-
     int streak = 0;
-    DateTime nextExpectedDate = today;
-
-    // Is the latest day today or yesterday?
-    final latestDate = DateTime(sortedDesc[0].date.year, sortedDesc[0].date.month, sortedDesc[0].date.day);
-    if (latestDate.isBefore(yesterday)) return 0;
+    // Current day is the latest shifted date we have
+    DateTime nextExpectedDate = DateTime(sortedDesc[0].date.year, sortedDesc[0].date.month, sortedDesc[0].date.day);
 
     for (final day in sortedDesc) {
       final dayDate = DateTime(day.date.year, day.date.month, day.date.day);
 
       if (dayDate == nextExpectedDate) {
-        if (day.isCompleted) {
+        // "Even 10% completion counts as a streak day"
+        if (day.completionPercentage > 0) {
           streak++;
           nextExpectedDate = nextExpectedDate.subtract(const Duration(days: 1));
         } else {
-          // If today isn't done, we look at yesterday
-          if (nextExpectedDate == today) {
-            nextExpectedDate = yesterday;
-            continue;
-          }
           break; // Broken streak
         }
       } else if (dayDate.isBefore(nextExpectedDate)) {
@@ -214,7 +206,7 @@ class HistoryViewModel extends ChangeNotifier {
     DateTime? prevDate;
 
     for (final day in sortedAsc) {
-      if (!day.isCompleted) {
+      if (day.completionPercentage == 0) {
         current = 0;
         prevDate = null;
         continue;
@@ -231,5 +223,11 @@ class HistoryViewModel extends ChangeNotifier {
       prevDate = dayDate;
     }
     return maxStreak;
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

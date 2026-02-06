@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:workout/domain/entities/photo_record.dart';
 
 class TimelapseOverlay extends StatefulWidget {
   final List<String> images;
@@ -10,6 +11,16 @@ class TimelapseOverlay extends StatefulWidget {
 
   @override
   State<TimelapseOverlay> createState() => _TimelapseOverlayState();
+
+  static void show(BuildContext context, List<PhotoRecord> photos) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => TimelapseOverlay(
+        images: photos.map((p) => p.filePath).toList(),
+        dates: photos.map((p) => p.capturedAt).toList(),
+      ),
+    );
+  }
 }
 
 class _TimelapseOverlayState extends State<TimelapseOverlay> {

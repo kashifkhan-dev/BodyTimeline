@@ -1,400 +1,295 @@
 
-This is meant to be the **single source of truth** for the current implementation phase.
+# 📘 CORRECTED PRD — TIME-SHIFTED REAL DATA (NO FAKE MOCK UI DATA)
+
+## Purpose of This Document
+
+This specification exists to **fix a critical misunderstanding**:
+
+❌ We are **NOT** showing fake / pre-generated mock data in the UI
+❌ We are **NOT** simulating 30 days upfront
+❌ We are **NOT** pre-filling history
+
+✅ We **ONLY** use **real user actions** (photos, logs, measurements)
+✅ We **TIME-SHIFT** those real actions into consecutive days
+✅ This is a **temporary testing behavior** to simulate 30 days of usage **quickly**
+
+This must be implemented **exactly** as written below.
 
 ---
 
-# 📘 Product Requirements Document (PRD)
+## 1. Core Concept — Time-Shifted Real Records (CRITICAL)
 
-## Workout App — Advanced Mock Data & UI Behavior Phase
+### Story (Intent)
 
-### Scope: Mock Repository, State Management, Screen Behavior
+We cannot wait 30 real days to test the app.
 
-### Goal: Enable realistic, time-simulated data to validate UI/UX and logic across the entire app.
+Instead:
 
----
+* Each time the user **takes a real action**
+* That action is **assigned to a different day**
+* This creates a realistic timeline using **real captured data**
 
-## 1. Product Story & Intent
+This allows:
 
-This app is a **visual truth engine for body change**.
-
-At this stage, we are **not** optimizing for real-world daily usage.
-Instead, we are building a **time-simulated environment** that behaves like a real app over weeks of usage — even if the user interacts with it in minutes.
-
-The intent is:
-
-* To **see 30 days of realistic data**
-* To observe how UI components react over time
-* To validate streaks, charts, progress, and timelines
-* To stress-test navigation and data visibility
-
-This phase is critical.
-If mock data does not behave like real data, the UI will lie to us.
+* Testing streaks
+* Testing charts
+* Testing history
+* Testing progress
+* Without fake data and without waiting a month
 
 ---
 
-## 2. Core Principle: Time-Simulated Mock Repository
+### Absolute Rules (NON-NEGOTIABLE)
+
+1. **There is NO mock UI data**
+2. **Nothing appears unless the user actually records it**
+3. **Every save action = a new day**
+4. **Data is real, only the timestamp is shifted**
+
+---
+
+## 2. Time-Shift Logic (THE MOST IMPORTANT PART)
+
+### Base Date
+
+* The **first ever record** is saved as:
+
+  ```
+  today - 30 days
+  ```
+
+### After That
+
+Each **successful save** advances the date:
+
+| User Action        | Saved As    |
+| ------------------ | ----------- |
+| First photo or log | Day -30     |
+| Second save        | Day -29     |
+| Third save         | Day -28     |
+| ...                | ...         |
+| Nth save           | Day -30 + N |
+
+⚠️ This applies to:
+
+* Photos
+* Measurements
+* Macronutrient logs
+
+---
+
+### What counts as a “Save”
+
+A save happens when:
+
+* A photo is **captured and accepted**
+* A macro bottom sheet is **confirmed**
+* A measurement bottom sheet is **confirmed**
+
+Opening sheets does **nothing**
+Canceling does **nothing**
+
+---
+
+## 3. One Record Per Day Rule
 
 ### Story
 
-Instead of waiting 30 real days to test the app, the app should **pretend time is passing** each time the user logs something.
+Each day represents **one snapshot of the body**.
 
-Each user action represents **a new day advancing**.
+### Specification
+
+* A day can have:
+
+  * Multiple photos (face, front, side, back)
+  * Multiple measurements
+  * Macro logs
+* BUT:
+
+  * They all belong to **the same shifted day**
+* Editing later:
+
+  * Creates a **new day**
+  * Does NOT overwrite past days
+
+❌ No overwriting history
+❌ No merging days
+
+---
+
+## 4. Today Screen — Correct Behavior
+
+### Story
+
+“Today” means:
+
+> The **current active shifted day**, not the real calendar day.
+
+---
+
+### Photo Capture
+
+* When a photo is taken:
+
+  * It is saved to the **current shifted day**
+  * The task is marked complete
+* Retaking:
+
+  * Creates a **new shifted day**
+  * Old photo remains in history
+
+---
+
+### Measurements & Macros
+
+* When logs are saved:
+
+  * They belong to the **current shifted day**
+* Editing measurements:
+
+  * Creates a **new shifted day**
+  * Old values remain intact
+
+---
+
+## 5. History Screen — Data Must Come ONLY From Real Actions
+
+### Story
+
+History is a **truth log** of what the user actually did.
+
+---
+
+### Weekly View
+
+* Only days that actually exist appear
+* No empty or fabricated days
+* Intensity = % of enabled tasks completed
+
+---
+
+### Streak
+
+* A day counts as streak if:
+
+  * **ANY real data exists**
+* Even one photo or one measurement counts
+
+---
+
+### Nutrients Overview
+
+* Uses ONLY saved logs
+* Averages calculated from real saved days
+* Hidden if nutrients are disabled
+
+---
+
+### Measurements Overview
+
+* Shows latest saved values
+* Only non-zero
+* Only if measurements are enabled
+
+---
+
+## 6. Statistics & Charts — REAL DATA ONLY
+
+### Story
+
+Charts must tell the story of **what the user actually recorded**.
+
+---
+
+### Rules
+
+* Each bar = one saved day
+* Dates reflect shifted timestamps
+* No gaps unless user skipped saves
+* Infinite horizontal scrolling still applies
+* Data loads dynamically as user scrolls
+
+❌ No placeholder bars
+❌ No empty days
+
+---
+
+## 7. Progress Screen — Truthful Progress
+
+### Completed Days
+
+* Count = number of saved shifted days
+
+### Streak
+
+* Based on consecutive shifted days
+* Breaks only if user stops saving
+
+---
+
+### Tabs
+
+* Tabs appear ONLY for enabled tracking zones
+* Scrollable when many zones are enabled
+
+---
+
+## 8. Timeline — Visual Proof
+
+### Story
+
+Timeline is the **visual evidence** of progress.
 
 ---
 
 ### Specification
 
-#### Mock Repository Rules (MANDATORY)
-
-* The repository must initialize with:
-
-  * A starting date **30 days in the past**
-* Every new save action:
-
-  * Advances the “current mock day” by **+1 day**
-  * Saves the data under that day
-* This applies to:
-
-  * Photos
-  * Measurements
-  * Macronutrients
-
-#### Key Rules
-
-* There is **only one record per day**
-* Updating a record modifies that day
-* Saving again creates a **new day**
-* This allows:
-
-  * Viewing up to 30 days of history
-  * Visualizing trends across all screens
-
-The mock repository must always expose:
-
-* Last 7 days
-* Last 30 days
-* Latest day (“Today”)
+* Shows last **20 real photos**
+* Lazy load next 20
+* Ordered by shifted date
+* No fake images
+* No placeholders
 
 ---
 
-## 3. Settings Screen — Tracking Configuration
+## 9. Explicit Things the Agent MUST NOT Do
 
-### Story
+🚫 DO NOT pre-generate days
+🚫 DO NOT fabricate measurements
+🚫 DO NOT simulate days without user actions
+🚫 DO NOT reset timestamps silently
+🚫 DO NOT mix old mock logic with this system
 
-The Settings screen defines **what the user cares about**.
-Anything disabled here should **disappear everywhere else**.
-
----
-
-### Specification
-
-#### Tracking Zones
-
-Each toggle controls visibility + tracking:
-
-* Face
-* Body Front
-* Body Side
-* Body Back
-
-If ON:
-
-* Appears in Today screen
-* Counts toward daily completion
-* Appears in History & Progress
-
-If OFF:
-
-* Hidden everywhere
-* Does NOT count toward completion
+If the user does nothing → **nothing appears**
 
 ---
 
-#### Measurements
+## 10. Why This Matters (For the Agent)
 
-* Multiple body measurements (waist, chest, arms, thighs, etc.)
-* Only enabled measurements:
+This system is:
 
-  * Appear in bottom sheets
-  * Appear in History & Statistics
-  * Count toward daily progress
+* Temporary
+* Purpose-built for testing
+* Designed to behave like real usage
+* Designed to reveal UX flaws early
 
----
+If this logic is wrong:
 
-#### Macronutrients
-
-* Calories
-* Protein
-* Carbs
-* Fats
-
-Same visibility rules apply.
+* Streaks lie
+* Charts lie
+* Progress lies
+* The app cannot be trusted
 
 ---
 
-#### Preferences
-
-* Theme (Light / Dark)
-* Locale
-
----
-
-## 4. Today Screen — Daily Execution Hub
-
-### Story
-
-The Today screen answers one question:
-
-> “How much of today’s tracking have I completed?”
-
----
-
-### Specification
-
-#### Header
-
-* Shows:
-
-  * Current date (mock date)
-  * Daily completion percentage
-
-Completion logic:
-
-* Based ONLY on enabled settings
-* Example:
-
-  * If Face + Body Front + Macros are ON
-  * Only those count toward 100%
-
----
-
-#### Photo Capture
-
-* Each enabled zone:
-
-  * Appears as a to-do
-  * Once photo is taken → marked completed
-* User can re-take to update the same day
-
-⚠️ Mock Rule:
-
-* Each accepted photo save advances the mock day
-
----
-
-#### Macros & Measurements
-
-* Open via bottom sheets
-* Logging values:
-
-  * Completes that task
-  * Advances mock day
-* Updating overwrites current mock day
-
----
-
-## 5. History Screen — Reflection & Consistency
-
-### Story
-
-The History screen shows:
-
-* Consistency
-* Effort
-* Trends
-
-Not perfection.
-
----
-
-### Specification
-
-#### Weekly Overview (7 Days)
-
-* Days: Mon → Sun
-* Each day:
-
-  * Intensity based on % completion
-  * 100% = bright
-  * Lower % = dimmer
-
----
-
-#### Checklist
-
-* Shows which parameters were:
-
-  * Completed
-  * Pending
-* Based on settings
-
----
-
-#### Streak
-
-* Shows consecutive days with **any activity**
-* Even 10% completion counts as a streak day
-
----
-
-#### Activity Heatmap
-
-* Visualizes intensity per day
-* Based on % completion
-
----
-
-#### Nutrients Overview
-
-* Shows averages:
-
-  * Calories
-  * Protein
-  * Carbs
-  * Fats
-* Visible ONLY if nutrients are enabled
-* Tapping navigates to **Nutrient Statistics Page**
-
----
-
-#### Measurements Overview
-
-* Shows latest recorded values
-* Only non-zero measurements
-* Visible ONLY if measurements are enabled
-* Tapping navigates to **Measurement Statistics Page**
-
----
-
-## 6. Statistics Screens — Insight, Not Noise
-
-### Story
-
-Charts should **tell a story clearly**, not confuse the user.
-
----
-
-### Shared Chart Rules
-
-* Use `fl_chart` bar charts
-* One bar = one day
-* X-axis labels:
-
-  * Human-readable dates (e.g., `30 Jan`)
-* Tooltips:
-
-  * Always visible
-  * High contrast
-  * Show value + unit + date
-
----
-
-### Infinite Scrolling
-
-* Charts scroll horizontally
-* Load data dynamically
-* Cache up to **2 weeks**
-* Load more as user scrolls
-* Never compromise performance
-
----
-
-### Nutrient Statistics Page
-
-* Shows:
-
-  * Calories chart
-  * Protein chart
-  * Carbs chart
-  * Fats chart
-* Same time scale
-
----
-
-### Measurement Statistics Page
-
-* Shows ALL measurement charts together
-* Only measurements that exist
-* Below charts:
-
-  * “Today’s Measurements” containers
-  * Styled like History page
-
----
-
-## 7. Progress Screen — Long-Term View
-
-### Story
-
-Progress is about **showing change**, not raw data.
-
----
-
-### Specification
-
-#### Streak Container
-
-* Shows:
-
-  * Current streak length
-
----
-
-#### Completed Days
-
-* Count of days since first record
-* Based on mock start date
-
----
-
-#### Dynamic Tabs
-
-* Tabs represent tracked zones
-* If more zones are enabled:
-
-  * Tabs become scrollable
-* Switching tabs:
-
-  * Shows different progress visuals
-
----
-
-## 8. Timeline — Visual Memory
-
-### Story
-
-Timeline is the **visual proof** of change.
-
----
-
-### Specification
-
-* Display latest **20 images**
-* Lazy load next 20 on scroll
-* No performance drops
-* Maintain correct ordering by date
-
----
-
-## 9. Non-Negotiable Rules
-
-* Mock data must behave like real time
-* Settings control visibility everywhere
-* No screen shows irrelevant data
-* UI consistency across screens
-* Performance must remain smooth
-
----
-
-## 10. Acceptance Criteria (Global)
-
-This phase is complete ONLY if:
-
-✅ 30-day simulated history works
-✅ Every save advances mock day
-✅ All screens reflect mock time correctly
-✅ Charts are readable and scroll infinitely
-✅ Settings fully control UI visibility
-✅ No skipped requirements
-
+## 11. Acceptance Criteria (FINAL CHECK)
+
+This phase is correct ONLY if:
+
+✅ UI shows only user-generated data
+✅ Every save advances the shifted day
+✅ History grows only via real actions
+✅ Charts reflect saved data exactly
+✅ Editing creates new days
+✅ No mock UI data exists anywhere
 

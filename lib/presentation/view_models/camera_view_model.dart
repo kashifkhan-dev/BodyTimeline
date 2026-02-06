@@ -168,7 +168,7 @@ class CameraViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> confirm() async {
+  Future<void> confirm({void Function(PhotoRecord)? onSaved}) async {
     if (_capturedFile == null) return;
 
     try {
@@ -184,6 +184,7 @@ class CameraViewModel extends ChangeNotifier {
       );
 
       await _workoutRepository.savePhoto(now, photo);
+      if (onSaved != null) onSaved(photo);
     } catch (e) {
       _errorMessage = e.toString();
       _state = CameraState.error;

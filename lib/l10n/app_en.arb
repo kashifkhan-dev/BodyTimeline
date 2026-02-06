@@ -236,6 +236,8 @@
   "saveAll": "Save All",
   "trackingZones": "Tracking Zones",
   "additionalTracking": "Additional Tracking",
+  "automation": "Automation",
+  "useLatestPhotoAsAvatar": "Use latest photo as avatar",
   "appearance": "Appearance",
   "darkMode": "Dark Mode",
   "face": "Face",

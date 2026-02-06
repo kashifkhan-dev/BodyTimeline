@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:cupertino_native/cupertino_native.dart';
+import 'package:provider/provider.dart';
+import '../view_models/today_view_model.dart';
 import 'today/today_screen.dart';
 import 'history/history_screen.dart';
 import 'progress/progress_screen.dart';
@@ -28,7 +30,7 @@ class _MainShellIOSState extends State<MainShellIOS> {
     return CupertinoPageScaffold(
       child: Stack(
         children: [
-          _pages[_currentIndex],
+          IndexedStack(index: _currentIndex, children: _pages),
           Positioned(
             left: 0,
             right: 0,
@@ -39,6 +41,10 @@ class _MainShellIOSState extends State<MainShellIOS> {
                 setState(() {
                   _currentIndex = index;
                 });
+                // Trigger session reset if switching to Today screen
+                if (index == 0) {
+                  context.read<TodayViewModel>().onScreenVisible();
+                }
               },
               items: [
                 CNTabBarItem(icon: const CNSymbol('clock.fill'), label: AppLocalizations.of(context)!.today),

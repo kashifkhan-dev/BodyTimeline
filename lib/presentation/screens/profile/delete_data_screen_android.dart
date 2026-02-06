@@ -126,7 +126,7 @@ class _DeleteDataScreenAndroidState extends State<DeleteDataScreenAndroid> {
     await vm.deleteAllData();
 
     if (mounted) {
-      context.read<TodayViewModel>().refresh();
+      context.read<TodayViewModel>().onScreenVisible();
       context.read<HistoryViewModel>().refresh();
       context.read<ProgressViewModel>().refresh();
       context.read<StatsViewModel>().clearCache();

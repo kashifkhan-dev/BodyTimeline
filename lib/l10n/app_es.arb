@@ -236,6 +236,8 @@
   "saveAll": "Guardar Todo",
   "trackingZones": "Zonas de Rastreo",
   "additionalTracking": "Rastreo Adicional",
+  "automation": "Automatización",
+  "useLatestPhotoAsAvatar": "Usar última foto como avatar",
   "appearance": "Apariencia",
   "darkMode": "Modo Oscuro",
   "face": "Cara",

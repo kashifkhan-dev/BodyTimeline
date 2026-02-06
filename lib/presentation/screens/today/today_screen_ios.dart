@@ -36,8 +36,6 @@ class TodayScreenIOS extends StatefulWidget {
 class _TodayScreenIOSState extends State<TodayScreenIOS> {
   ActiveSheet _activeSheet = ActiveSheet.none;
 
-  final Set<ZoneType> _localCompletedZones = {};
-
   void _showSheet(ActiveSheet sheet) {
     setState(() {
       _activeSheet = sheet;
@@ -82,15 +80,10 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
       return config.isEnabled(z) && z != ZoneType.macronutrients && z != ZoneType.measurements;
     }).toList();
 
-    final enabledZones = today.activeZones.where((z) => config.isEnabled(z)).toList();
-    final int totalZones = enabledZones.length;
-    final int localCompletedCount = enabledZones.where((z) {
-      if (z == ZoneType.macronutrients || z == ZoneType.measurements) {
-        return today.isZoneCompleted(z);
-      }
-      return _localCompletedZones.contains(z);
-    }).length;
-    final completion = totalZones > 0 ? localCompletedCount / totalZones : 1.0;
+    // The PRD says completion should be based ONLY on enabled settings.
+    // WorkoutDay already handles this in completionPercentage if initialized
+    // with correct activeZones (which it is, see TodayViewModel).
+    final completion = vm.completionPercentage;
 
     return Stack(
       children: [
@@ -112,7 +105,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 16),
                     Text(
-                      _getFormattedLongDate(context),
+                      _getFormattedLongDate(context, today),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: colors.textSecondary),
                     ),
                     const SizedBox(height: 16),
@@ -122,11 +115,11 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                     if (activePhotoZones.isNotEmpty) ...[
                       _buildSectionHeader(
                         title: AppLocalizations.of(context)!.todaysTasks,
-                        subtext: _getTasksRemainingText(context, today, config, isTaskOnly: true),
+                        subtext: _getTasksRemainingText(context, vm, today, config, isTaskOnly: true),
                         colors: colors,
                       ),
                       const SizedBox(height: 12),
-                      ...activePhotoZones.map((zone) => _buildTaskCard(context, colors, today, zone)),
+                      ...activePhotoZones.map((zone) => _buildTaskCard(context, colors, vm, today, zone)),
                       const SizedBox(height: 32),
                     ],
 
@@ -145,7 +138,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                                 child: _buildLogCard(
                                   icon: CupertinoIcons.lab_flask,
                                   title: AppLocalizations.of(context)!.macros,
-                                  subtitle: today.isZoneCompleted(ZoneType.macronutrients)
+                                  subtitle: vm.isZoneCompleted(ZoneType.macronutrients)
                                       ? AppLocalizations.of(context)!.logged
                                       : AppLocalizations.of(context)!.pending,
                                   colors: colors,
@@ -161,7 +154,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                                 child: _buildLogCard(
                                   icon: CupertinoIcons.gauge,
                                   title: AppLocalizations.of(context)!.measurements,
-                                  subtitle: today.isZoneCompleted(ZoneType.measurements)
+                                  subtitle: vm.isZoneCompleted(ZoneType.measurements)
                                       ? AppLocalizations.of(context)!.recorded
                                       : AppLocalizations.of(context)!.notRecorded,
                                   colors: colors,
@@ -261,7 +254,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
 
   Widget _buildAvatarImage(String? path) {
     if (path == null) {
-      return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      return Image.asset('assets/images/front.png', fit: BoxFit.cover);
     }
     if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
@@ -270,7 +263,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
       File(path),
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+        return Image.asset('assets/images/front.png', fit: BoxFit.cover);
       },
     );
   }
@@ -361,8 +354,9 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
     );
   }
 
-  Widget _buildTaskCard(BuildContext context, AppColors colors, WorkoutDay day, ZoneType zone) {
-    final isCompleted = _localCompletedZones.contains(zone);
+  Widget _buildTaskCard(BuildContext context, AppColors colors, TodayViewModel vm, WorkoutDay day, ZoneType zone) {
+    final photo = vm.getSessionPhoto(zone);
+    final isCompleted = vm.isZoneCompleted(zone);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -392,9 +386,9 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    isCompleted
+                    isCompleted && photo != null
                         ? AppLocalizations.of(context)!.capturedAt(
-                            '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+                            '${photo.capturedAt.hour.toString().padLeft(2, '0')}:${photo.capturedAt.minute.toString().padLeft(2, '0')}',
                           )
                         : _getZoneSubtitle(context, zone),
                     style: TextStyle(fontSize: 13, color: colors.textSecondary),
@@ -410,8 +404,9 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
                   const SizedBox(width: 8),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
-                    onPressed: () {
-                      CameraScreen.show(context, zone);
+                    onPressed: () async {
+                      await CameraScreen.show(context, zone);
+                      vm.refresh();
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -429,11 +424,9 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
               CNButton.icon(
                 icon: const CNSymbol('camera.fill', size: 20),
                 size: 60,
-                onPressed: () {
-                  setState(() {
-                    _localCompletedZones.add(zone);
-                  });
-                  CameraScreen.show(context, zone);
+                onPressed: () async {
+                  await CameraScreen.show(context, zone);
+                  vm.refresh();
                 },
               ),
           ],
@@ -539,6 +532,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
 
   String _getTasksRemainingText(
     BuildContext context,
+    TodayViewModel vm,
     WorkoutDay day,
     TrackingConfig config, {
     bool isTaskOnly = false,
@@ -550,20 +544,15 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
         : day.activeZones.where((z) => config.isEnabled(z));
 
     final total = zones.length;
-    final completed = zones.where((z) {
-      if (z == ZoneType.macronutrients || z == ZoneType.measurements) {
-        return day.isZoneCompleted(z);
-      }
-      return _localCompletedZones.contains(z);
-    }).length;
+    final completed = zones.where((z) => vm.isZoneCompleted(z)).length;
     final remaining = total - completed;
 
     return AppLocalizations.of(context)!.tasksRemaining(remaining, total);
   }
 
-  String _getFormattedLongDate(BuildContext context) {
+  String _getFormattedLongDate(BuildContext context, WorkoutDay day) {
     final l10n = AppLocalizations.of(context)!;
-    final now = DateTime.now();
+    final date = day.date;
     final weekdays = [
       l10n.monday,
       l10n.tuesday,
@@ -587,7 +576,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
       l10n.november,
       l10n.december,
     ];
-    return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }
 

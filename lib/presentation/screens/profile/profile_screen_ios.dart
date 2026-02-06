@@ -100,7 +100,7 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
 
   Widget _buildImage(String? path) {
     if (path == null) {
-      return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+      return Image.asset('assets/images/front.png', fit: BoxFit.cover);
     }
     if (path.startsWith('assets/')) {
       return Image.asset(path, fit: BoxFit.cover);
@@ -109,7 +109,7 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
       File(path),
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        return Image.asset('assets/images/transformation/1.png', fit: BoxFit.cover);
+        return Image.asset('assets/images/front.png', fit: BoxFit.cover);
       },
     );
   }

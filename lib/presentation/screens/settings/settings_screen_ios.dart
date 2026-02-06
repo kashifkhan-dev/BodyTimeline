@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_native/cupertino_native.dart';
 import 'package:provider/provider.dart';
+import '../../view_models/profile_view_model.dart';
 import '../../view_models/settings_view_model.dart';
+
 import '../../../domain/value_objects/zone_type.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
@@ -44,10 +46,38 @@ class SettingsScreenIOS extends StatelessWidget {
                 const SizedBox(height: 24),
                 _buildHeader(AppLocalizations.of(context)!.trackingZones.toUpperCase(), colors),
                 const SizedBox(height: 12),
-                _buildZoneTile(context, colors, vm, ZoneType.face, AppLocalizations.of(context)!.face, '👤'),
-                _buildZoneTile(context, colors, vm, ZoneType.bodyFront, AppLocalizations.of(context)!.bodyFront, '🧍'),
-                _buildZoneTile(context, colors, vm, ZoneType.bodySide, AppLocalizations.of(context)!.bodySide, '🧍‍♂️'),
-                _buildZoneTile(context, colors, vm, ZoneType.bodyBack, AppLocalizations.of(context)!.bodyBack, '🧍‍♀️'),
+                _buildZoneTile(
+                  context,
+                  colors,
+                  vm,
+                  ZoneType.face,
+                  AppLocalizations.of(context)!.face,
+                  CupertinoIcons.person_crop_circle,
+                ),
+                _buildZoneTile(
+                  context,
+                  colors,
+                  vm,
+                  ZoneType.bodyFront,
+                  AppLocalizations.of(context)!.bodyFront,
+                  CupertinoIcons.person_alt,
+                ),
+                _buildZoneTile(
+                  context,
+                  colors,
+                  vm,
+                  ZoneType.bodySide,
+                  AppLocalizations.of(context)!.bodySide,
+                  CupertinoIcons.person_alt_circle,
+                ),
+                _buildZoneTile(
+                  context,
+                  colors,
+                  vm,
+                  ZoneType.bodyBack,
+                  AppLocalizations.of(context)!.bodyBack,
+                  CupertinoIcons.person_alt_circle_fill,
+                ),
                 const SizedBox(height: 32),
                 _buildHeader(AppLocalizations.of(context)!.additionalTracking.toUpperCase(), colors),
                 const SizedBox(height: 12),
@@ -57,7 +87,7 @@ class SettingsScreenIOS extends StatelessWidget {
                   vm,
                   ZoneType.measurements,
                   AppLocalizations.of(context)!.measurements,
-                  '📏',
+                  CupertinoIcons.envelope,
                 ),
                 _buildZoneTile(
                   context,
@@ -65,7 +95,23 @@ class SettingsScreenIOS extends StatelessWidget {
                   vm,
                   ZoneType.macronutrients,
                   AppLocalizations.of(context)!.macronutrients,
-                  '🍎',
+                  CupertinoIcons.metronome,
+                ),
+                const SizedBox(height: 48),
+                _buildHeader(AppLocalizations.of(context)!.automation.toUpperCase(), colors),
+                const SizedBox(height: 12),
+                _buildToggleTile(
+                  context,
+                  colors,
+                  label: AppLocalizations.of(context)!.useLatestPhotoAsAvatar,
+                  value: config.usePhotoAsAvatar,
+                  onChanged: (val) {
+                    vm.toggleUsePhotoAsAvatar(val);
+                    if (val) {
+                      context.read<ProfileViewModel>().setLatestFrontBodyAsAvatar();
+                    }
+                  },
+                  icon: CupertinoIcons.camera_fill,
                 ),
                 const SizedBox(height: 48),
                 _buildHeader(AppLocalizations.of(context)!.appearance.toUpperCase(), colors),
@@ -89,13 +135,55 @@ class SettingsScreenIOS extends StatelessWidget {
     );
   }
 
+  Widget _buildToggleTile(
+    BuildContext context,
+    AppColors colors, {
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(10)),
+              alignment: Alignment.center,
+              child: Icon(icon, color: colors.textPrimary, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(fontSize: 17, color: colors.textPrimary, fontWeight: FontWeight.w500),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            CNSwitch(value: value, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildZoneTile(
     BuildContext context,
     AppColors colors,
     SettingsViewModel vm,
     ZoneType zone,
     String label,
-    String emoji,
+    IconData icon,
   ) {
     final isEnabled = vm.config?.isEnabled(zone) ?? false;
     return Padding(
@@ -114,7 +202,7 @@ class SettingsScreenIOS extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(10)),
               alignment: Alignment.center,
-              child: Text(emoji, style: const TextStyle(fontSize: 20)),
+              child: Icon(icon, color: colors.textPrimary, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(

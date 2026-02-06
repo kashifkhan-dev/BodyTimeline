@@ -23,17 +23,12 @@ class ProgressScreenAndroid extends StatelessWidget {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
 
-    final List<String> photos;
-    final List<DateTime> dates;
+    // Get real photos from VM
+    final allPhotos = vm.latestPhotos;
 
-    if (vm.selectedZone == ZoneType.face) {
-      photos = ['assets/images/face/face1.png', 'assets/images/face/face2.png'];
-      final allDates = vm.photoDates;
-      dates = allDates.length >= 2 ? [allDates.first, allDates.last] : allDates;
-    } else {
-      photos = List.generate(19, (i) => 'assets/images/transformation/${i + 1}.png');
-      dates = vm.photoDates;
-    }
+    // Extract paths and dates for Android UI
+    final List<String> photos = allPhotos.map((p) => p.filePath).toList();
+    final List<DateTime> dates = allPhotos.map((p) => p.capturedAt).toList();
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -46,14 +41,18 @@ class ProgressScreenAndroid extends StatelessWidget {
       body: vm.isLoading
           ? Center(child: CircularProgressIndicator(color: colors.primary))
           : RefreshIndicator(
-              onRefresh: () async {}, // Implement if needed
+              onRefresh: () async {
+                await vm.refresh();
+              },
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 children: [
                   _buildStatsRow(context, vm, colors),
                   const SizedBox(height: 24),
-                  _buildZoneSelector(context, vm, colors),
-                  const SizedBox(height: 32),
+                  if (vm.availableZones.isNotEmpty) ...[
+                    _buildZoneSelector(context, vm, colors),
+                    const SizedBox(height: 32),
+                  ],
                   _buildBeforeAfterSection(context, photos, dates, colors),
                   const SizedBox(height: 32),
                   _buildTimelineSection(context, photos, colors),
@@ -115,27 +114,47 @@ class ProgressScreenAndroid extends StatelessWidget {
   }
 
   Widget _buildZoneSelector(BuildContext context, ProgressViewModel vm, AppColors colors) {
+    // Dynamically build segments from available zones
+    final zones = vm.availableZones.toList();
+
+    // Sort logic to keep consistent order (Face, Front, Side, Back)
+    zones.sort((a, b) => a.index.compareTo(b.index));
+
     return Container(
       decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildZoneSegment(
-              label: AppLocalizations.of(context)!.facePhoto,
-              isActive: vm.selectedZone == ZoneType.face,
-              onTap: () => vm.setSelectedZone(ZoneType.face),
-              colors: colors,
-            ),
-          ),
-          Expanded(
-            child: _buildZoneSegment(
-              label: AppLocalizations.of(context)!.body,
-              isActive: vm.selectedZone == ZoneType.bodyFront,
-              onTap: () => vm.setSelectedZone(ZoneType.bodyFront),
-              colors: colors,
-            ),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: zones.map((zone) {
+            String label;
+            switch (zone) {
+              case ZoneType.face:
+                label = AppLocalizations.of(context)!.face;
+                break;
+              case ZoneType.bodyFront:
+                label = AppLocalizations.of(context)!.bodyFront;
+                break;
+              case ZoneType.bodySide:
+                label = AppLocalizations.of(context)!.bodySide;
+                break;
+              case ZoneType.bodyBack:
+                label = AppLocalizations.of(context)!.bodyBack;
+                break;
+              default:
+                label = '';
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: _buildZoneSegment(
+                label: label,
+                isActive: vm.selectedZone == zone,
+                onTap: () => vm.setSelectedZone(zone),
+                colors: colors,
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -151,7 +170,7 @@ class ProgressScreenAndroid extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: isActive ? colors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
@@ -263,7 +282,7 @@ class ProgressScreenAndroid extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Text('${date.day}/${date.month}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+        Text(_formatRelativeDate(context, date), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
       ],
     );
   }
@@ -348,6 +367,34 @@ class ProgressScreenAndroid extends StatelessWidget {
         child: _ExportProgressOverlayAndroid(qualityName: qualityName, height: height, photos: photos, colors: colors),
       ),
     );
+  }
+
+  String _formatRelativeDate(BuildContext context, DateTime date) {
+    final day = date.day;
+    final month = _getMonthName(context, date.month);
+    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$day $month $hour:$minute $period';
+  }
+
+  String _getMonthName(BuildContext context, int month) {
+    final l10n = AppLocalizations.of(context)!;
+    final months = [
+      l10n.jan,
+      l10n.feb,
+      l10n.mar,
+      l10n.apr,
+      l10n.may,
+      l10n.jun,
+      l10n.jul,
+      l10n.aug,
+      l10n.sep,
+      l10n.oct,
+      l10n.nov,
+      l10n.dec,
+    ];
+    return months[month - 1];
   }
 }
 

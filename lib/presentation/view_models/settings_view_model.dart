@@ -33,4 +33,12 @@ class SettingsViewModel extends ChangeNotifier {
     _config = newConfig;
     notifyListeners();
   }
+
+  Future<void> toggleUsePhotoAsAvatar(bool enabled) async {
+    if (_config == null) return;
+    final newConfig = _config!.copyWith(usePhotoAsAvatar: enabled);
+    await _repository.saveConfig(newConfig);
+    _config = newConfig;
+    notifyListeners();
+  }
 }

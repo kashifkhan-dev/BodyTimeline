@@ -18,6 +18,7 @@ class InMemoryStore {
       ZoneType.measurements,
       ZoneType.macronutrients,
     },
+    usePhotoAsAvatar: false,
   );
 
   String dateToKey(DateTime date) {

@@ -1160,6 +1160,18 @@ abstract class AppLocalizations {
   /// **'Additional Tracking'**
   String get additionalTracking;
 
+  /// No description provided for @automation.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation'**
+  String get automation;
+
+  /// No description provided for @useLatestPhotoAsAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Use latest photo as avatar'**
+  String get useLatestPhotoAsAvatar;
+
   /// No description provided for @appearance.
   ///
   /// In en, this message translates to:

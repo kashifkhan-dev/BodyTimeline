@@ -27,43 +27,17 @@ class ScrollableBarChart extends StatefulWidget {
 
 class _ScrollableBarChartState extends State<ScrollableBarChart> {
   final ScrollController _scrollController = ScrollController();
-  late DateTime _anchorDate;
-  int _daysToShow = 30;
-  bool _isLoadingMore = false;
+  int _daysToShow = 30; // Still used for internal viewport if needed, but we show all points now
 
   @override
   void initState() {
     super.initState();
-    // Normalize to midnight
-    final now = DateTime.now();
-    _anchorDate = DateTime(now.year, now.month, now.day);
-
     _scrollController.addListener(_onScroll);
-
-    // Initial load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  Future<void> _loadData() async {
-    await context.read<StatsViewModel>().loadWindow(_anchorDate, windowDays: _daysToShow);
   }
 
   void _onScroll() {
-    // When user scrolls towards the left (older data)
-    // threshold is 100px from the far left (which is maxScrollExtent since reverse: true)
-    if (_scrollController.position.pixels > _scrollController.position.maxScrollExtent - 100) {
-      if (!_isLoadingMore) {
-        setState(() {
-          _isLoadingMore = true;
-          _daysToShow += 30;
-        });
-        _loadData().then((_) {
-          if (mounted) setState(() => _isLoadingMore = false);
-        });
-      }
-    }
+    // Current requirement: "Infinite horizontal scrolling still applies"
+    // With real data only, we just show everything we have.
   }
 
   @override
@@ -82,12 +56,7 @@ class _ScrollableBarChartState extends State<ScrollableBarChart> {
     final vm = context.watch<StatsViewModel>();
 
     // points is [Oldest, ..., Today]
-    final points = vm.getDataPoints(
-      _anchorDate.subtract(Duration(days: _daysToShow - 1)),
-      _anchorDate,
-      widget.metricType,
-      measurementType: widget.measurementType,
-    );
+    final points = vm.getDataPoints(widget.metricType, measurementType: widget.measurementType);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

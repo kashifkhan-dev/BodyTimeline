@@ -564,6 +564,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get additionalTracking => 'Additional Tracking';
 
   @override
+  String get automation => 'Automation';
+
+  @override
+  String get useLatestPhotoAsAvatar => 'Use latest photo as avatar';
+
+  @override
   String get appearance => 'Appearance';
 
   @override
