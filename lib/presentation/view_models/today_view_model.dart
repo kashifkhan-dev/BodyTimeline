@@ -56,8 +56,6 @@ class TodayViewModel extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    // We don't set _isLoading = true on reactive refreshes to avoid flickers
-    // but we do on the first load.
     if (_today == null) {
       _isLoading = true;
       notifyListeners();
@@ -65,18 +63,28 @@ class TodayViewModel extends ChangeNotifier {
 
     try {
       final config = await _settingsRepository.getConfig();
-      final allDays = await _workoutRepository.getAllDays();
+      final now = DateTime.now();
+      final todayDate = DateTime(now.year, now.month, now.day);
 
-      // The PRD says each parameter has its own timeline.
-      // However, the Today screen wants to show "What is next".
-      // We'll construct a "virtual" today that shows what's done IN SESSION
-      // and what's pending.
+      // Load existing data for today from repository
+      final existingDay = await _workoutRepository.getDay(todayDate);
+
+      if (existingDay != null) {
+        // Sync session state with what's actually in DB for today
+        for (var photo in existingDay.photos) {
+          _sessionPhotos[photo.zoneType] = photo;
+        }
+        _sessionMacros = existingDay.macros;
+        if (existingDay.measurements.isNotEmpty) {
+          _sessionMeasurements = existingDay.measurements;
+        }
+      }
 
       _today = WorkoutDay(
-        date: allDays.isNotEmpty
-            ? allDays.first.date.add(const Duration(days: 1))
-            : DateTime.now().subtract(const Duration(days: 30)),
-        photos: [], // We don't show history photos in the Today "Pending" tiles
+        date: todayDate,
+        photos: existingDay?.photos ?? [],
+        macros: existingDay?.macros,
+        measurements: existingDay?.measurements ?? [],
         activeZones: config.enabledZones.toList(),
       );
     } catch (e) {

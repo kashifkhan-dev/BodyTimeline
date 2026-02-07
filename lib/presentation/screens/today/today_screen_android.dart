@@ -274,7 +274,7 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
       color: colors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -299,21 +299,21 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               percentage >= 1.0 ? AppLocalizations.of(context)!.greatJob : AppLocalizations.of(context)!.almostThere,
               style: Theme.of(
                 context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               percentage >= 1.0
                   ? AppLocalizations.of(context)!.dailyGoalReached
                   : AppLocalizations.of(context)!.completeOneMoreTask,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colors.textSecondary),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             LinearProgressIndicator(
               value: percentage.clamp(0.0, 1.0),
               backgroundColor: colors.progressBackground,

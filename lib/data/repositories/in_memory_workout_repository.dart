@@ -6,28 +6,25 @@ import '../../domain/entities/macro_log.dart';
 import '../../domain/value_objects/zone_type.dart';
 import '../../domain/repositories/workout_repository.dart';
 import '../datasources/in_memory_store.dart';
+import '../datasources/sqlite_persistence_service.dart';
 
 class InMemoryWorkoutRepository implements WorkoutRepository {
   final InMemoryStore _store;
-  final DateTime _baseDate;
+  final SqlitePersistenceService _persistence;
   final StreamController<void> _changesController = StreamController<void>.broadcast();
 
-  // Tracks number of saves per parameter to support independent timelines
-  final Map<ZoneType, int> _parameterCounts = {};
+  InMemoryWorkoutRepository(this._store, this._persistence);
 
-  InMemoryWorkoutRepository(this._store) : _baseDate = DateTime.now().subtract(const Duration(days: 30));
+  Future<void> init() async {
+    final allDays = await _persistence.loadAllDays();
+    for (var day in allDays) {
+      final key = _store.dateToKey(day.date);
+      _store.days[key] = day;
+    }
+  }
 
   @override
   Stream<void> get changes => _changesController.stream;
-
-  DateTime _getTargetDateForParameter(ZoneType type) {
-    final count = _parameterCounts[type] ?? 0;
-    return _baseDate.add(Duration(days: count));
-  }
-
-  void _incrementCount(ZoneType type) {
-    _parameterCounts[type] = (_parameterCounts[type] ?? 0) + 1;
-  }
 
   Future<WorkoutDay> _getOrCreateDay(DateTime date) async {
     final key = _store.dateToKey(date);
@@ -51,56 +48,57 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
 
   @override
   Future<void> savePhoto(DateTime date, PhotoRecord photo) async {
-    final targetDate = _getTargetDateForParameter(photo.zoneType);
-    final day = await _getOrCreateDay(targetDate);
+    final day = await _getOrCreateDay(date);
 
-    // Merge photo into the day
-    final updatedPhotos = List<PhotoRecord>.from(day.photos)..add(photo);
-    _store.days[_store.dateToKey(targetDate)] = WorkoutDay(
-      date: targetDate,
+    // Rule: One image per parameter per day
+    final List<PhotoRecord> updatedPhotos = List<PhotoRecord>.from(day.photos);
+    updatedPhotos.removeWhere((p) => p.zoneType == photo.zoneType);
+    updatedPhotos.add(photo);
+
+    _store.days[_store.dateToKey(date)] = WorkoutDay(
+      date: date,
       photos: updatedPhotos,
       measurements: day.measurements,
       macros: day.macros,
       activeZones: day.activeZones,
     );
 
-    _incrementCount(photo.zoneType);
+    // Persist to SQLite immediately
+    await _persistence.savePhoto(date, photo);
     _changesController.add(null);
   }
 
   @override
   Future<void> saveMeasurements(DateTime date, List<Measurement> measurements) async {
-    final type = ZoneType.measurements;
-    final targetDate = _getTargetDateForParameter(type);
-    final day = await _getOrCreateDay(targetDate);
+    final day = await _getOrCreateDay(date);
 
-    _store.days[_store.dateToKey(targetDate)] = WorkoutDay(
-      date: targetDate,
+    _store.days[_store.dateToKey(date)] = WorkoutDay(
+      date: date,
       photos: day.photos,
       measurements: measurements,
       macros: day.macros,
       activeZones: day.activeZones,
     );
 
-    _incrementCount(type);
+    // Persist to SQLite immediately
+    await _persistence.saveMeasurements(date, measurements);
     _changesController.add(null);
   }
 
   @override
   Future<void> saveMacros(DateTime date, MacroLog macros) async {
-    final type = ZoneType.macronutrients;
-    final targetDate = _getTargetDateForParameter(type);
-    final day = await _getOrCreateDay(targetDate);
+    final day = await _getOrCreateDay(date);
 
-    _store.days[_store.dateToKey(targetDate)] = WorkoutDay(
-      date: targetDate,
+    _store.days[_store.dateToKey(date)] = WorkoutDay(
+      date: date,
       photos: day.photos,
       measurements: day.measurements,
       macros: macros,
       activeZones: day.activeZones,
     );
 
-    _incrementCount(type);
+    // Persist to SQLite immediately
+    await _persistence.saveMacros(date, macros);
     _changesController.add(null);
   }
 
@@ -123,7 +121,7 @@ class InMemoryWorkoutRepository implements WorkoutRepository {
   @override
   Future<void> deleteAllData() async {
     _store.clearAll();
-    _parameterCounts.clear();
+    await _persistence.clearAll();
     _changesController.add(null);
   }
 }

@@ -273,7 +273,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
     const darkGreenText = Color(0xFF3A5A1A);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(24),
@@ -304,19 +304,19 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             percentage >= 1.0 ? AppLocalizations.of(context)!.greatJob : AppLocalizations.of(context)!.almostThere,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.textPrimary),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colors.textPrimary),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             percentage >= 1.0
                 ? AppLocalizations.of(context)!.dailyGoalReached
                 : AppLocalizations.of(context)!.completeOneMoreTask,
-            style: TextStyle(fontSize: 15, color: colors.textSecondary),
+            style: TextStyle(fontSize: 13, color: colors.textSecondary),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Container(

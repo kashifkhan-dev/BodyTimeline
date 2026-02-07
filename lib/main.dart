@@ -9,6 +9,8 @@ import 'core/theme/theme_provider.dart';
 
 // Layers
 import 'data/datasources/in_memory_store.dart';
+import 'data/datasources/sqlite_helper.dart';
+import 'data/datasources/sqlite_persistence_service.dart';
 import 'data/repositories/in_memory_workout_repository.dart';
 import 'data/repositories/in_memory_settings_repository.dart';
 import 'domain/repositories/workout_repository.dart';
@@ -40,12 +42,18 @@ void main() async {
 
   // Initialize storage
   final store = InMemoryStore();
+  final sqliteHelper = SqliteHelper();
+  final persistenceService = SqlitePersistenceService(sqliteHelper);
 
   // Initialize Repositories
-  final workoutRepo = InMemoryWorkoutRepository(store);
-  final settingsRepo = InMemorySettingsRepository(store);
+  final workoutRepo = InMemoryWorkoutRepository(store, persistenceService);
+  final settingsRepo = InMemorySettingsRepository(store, prefs);
   final userRepo = InMemoryUserRepository(prefs);
   final localeRepo = PrefsLocaleRepository();
+
+  // Hydrate Data from Persistence Layer
+  await settingsRepo.init();
+  await workoutRepo.init();
 
   // Load Persisted Theme
   final initialThemeMode = await ThemePersistence.loadThemeMode();
