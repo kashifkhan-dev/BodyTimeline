@@ -9,7 +9,7 @@ class PrefsLocaleRepository implements LocaleRepository {
   Future<AppLanguage> getLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString(_key);
-    if (code == null) return AppLanguage.spanish;
+    if (code == null) return AppLanguage.english;
     return AppLanguage.fromCode(code);
   }
 

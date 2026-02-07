@@ -20,8 +20,8 @@ class _MainShellIOSState extends State<MainShellIOS> {
 
   final List<Widget> _pages = [
     const TodayScreen(),
-    const HistoryScreen(),
     const ProgressScreen(),
+    const HistoryScreen(),
     const SettingsScreen(),
   ];
 
@@ -48,8 +48,8 @@ class _MainShellIOSState extends State<MainShellIOS> {
               },
               items: [
                 CNTabBarItem(icon: const CNSymbol('clock.fill'), label: AppLocalizations.of(context)!.today),
-                CNTabBarItem(icon: const CNSymbol('calendar'), label: AppLocalizations.of(context)!.history),
                 CNTabBarItem(icon: const CNSymbol('chart.bar.fill'), label: AppLocalizations.of(context)!.progress),
+                CNTabBarItem(icon: const CNSymbol('calendar'), label: AppLocalizations.of(context)!.history),
                 CNTabBarItem(icon: const CNSymbol('gearshape.fill'), label: AppLocalizations.of(context)!.settings),
               ],
             ),

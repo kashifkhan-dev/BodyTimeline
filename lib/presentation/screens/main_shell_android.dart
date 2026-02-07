@@ -17,8 +17,8 @@ class _MainShellAndroidState extends State<MainShellAndroid> {
 
   final List<Widget> _pages = [
     const TodayScreen(),
-    const HistoryScreen(),
     const ProgressScreen(),
+    const HistoryScreen(),
     const SettingsScreen(),
   ];
 
@@ -35,8 +35,8 @@ class _MainShellAndroidState extends State<MainShellAndroid> {
         },
         destinations: [
           NavigationDestination(icon: const Icon(Icons.today), label: AppLocalizations.of(context)!.today),
-          NavigationDestination(icon: const Icon(Icons.history), label: AppLocalizations.of(context)!.history),
           NavigationDestination(icon: const Icon(Icons.bar_chart), label: AppLocalizations.of(context)!.progress),
+          NavigationDestination(icon: const Icon(Icons.history), label: AppLocalizations.of(context)!.history),
           NavigationDestination(icon: const Icon(Icons.settings), label: AppLocalizations.of(context)!.settings),
         ],
       ),

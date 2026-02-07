@@ -49,15 +49,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
   }
 
   void _navigateToProfile() {
-    Navigator.push(context, CupertinoPageRoute(builder: (context) => const ProfileScreen()));
-  }
-
-  void _navigateToDeleteData() {
-    Navigator.push(context, CupertinoPageRoute(builder: (context) => const DeleteDataScreen()));
-  }
-
-  void _navigateToLanguage() {
-    Navigator.push(context, CupertinoPageRoute(builder: (context) => const LanguageScreen()));
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => const ProfileScreen(), fullscreenDialog: true));
   }
 
   @override
@@ -93,6 +85,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               CupertinoSliverNavigationBar(
+                transitionBetweenRoutes: false,
                 largeTitle: Text(AppLocalizations.of(context)!.today, style: TextStyle(color: colors.textPrimary)),
                 backgroundColor: colors.background.withAlpha(200),
                 border: Border(bottom: BorderSide(color: colors.border)),
@@ -226,8 +219,8 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
     return GestureDetector(
       onTap: () => _showProfileMenu(context, colors),
       child: Container(
-        width: 32,
-        height: 32,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
           color: colors.surface,
           shape: BoxShape.circle,
@@ -240,16 +233,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
   }
 
   void _showProfileMenu(BuildContext context, AppColors colors) {
-    showCupertinoModalPopup(
-      context: context,
-      barrierColor: CupertinoColors.black.withAlpha(20),
-      builder: (context) => _LiquidGlassMenu(
-        onProfile: _navigateToProfile,
-        onDelete: _navigateToDeleteData,
-        onLanguage: _navigateToLanguage,
-        colors: colors,
-      ),
-    );
+    _navigateToProfile();
   }
 
   Widget _buildAvatarImage(String? path) {
@@ -577,93 +561,5 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
       l10n.december,
     ];
     return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
-  }
-}
-
-class _LiquidGlassMenu extends StatelessWidget {
-  final VoidCallback onProfile;
-  final VoidCallback onDelete;
-  final VoidCallback onLanguage;
-  final AppColors colors;
-
-  const _LiquidGlassMenu({
-    required this.onProfile,
-    required this.onDelete,
-    required this.onLanguage,
-    required this.colors,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          top: 100, // Adjusted for Sliver Nav Bar height
-          right: 20,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                width: 220,
-                decoration: BoxDecoration(
-                  color: colors.background.withAlpha(150),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.border.withAlpha(80)),
-                  boxShadow: [
-                    BoxShadow(color: CupertinoColors.black.withAlpha(30), blurRadius: 30, offset: const Offset(0, 15)),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildItem(AppLocalizations.of(context)!.profile, CupertinoIcons.person_circle, () {
-                      Navigator.pop(context);
-                      onProfile();
-                    }, false),
-                    Container(height: 0.5, color: colors.border.withAlpha(80)),
-                    _buildItem(AppLocalizations.of(context)!.language, CupertinoIcons.globe, () {
-                      Navigator.pop(context);
-                      onLanguage();
-                    }, false),
-                    Container(height: 0.5, color: colors.border.withAlpha(80)),
-                    _buildItem(AppLocalizations.of(context)!.deleteData, CupertinoIcons.trash, () {
-                      Navigator.pop(context);
-                      onDelete();
-                    }, true),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItem(String label, IconData icon, VoidCallback onTap, bool isDestructive) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        color: const Color(0x00000000),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: isDestructive ? CupertinoColors.destructiveRed : colors.textPrimary),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 17,
-                color: isDestructive ? CupertinoColors.destructiveRed : colors.textPrimary,
-                decoration: TextDecoration.none,
-                fontWeight: FontWeight.w400,
-                fontFamily: '.SF Pro Text',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

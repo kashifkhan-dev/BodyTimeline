@@ -11,6 +11,7 @@ import '../../../core/theme/color_palette.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../view_models/locale_view_model.dart';
 import '../../../domain/entities/app_language.dart';
+import '../profile/delete_data_screen.dart';
 
 class SettingsScreenIOS extends StatelessWidget {
   const SettingsScreenIOS({super.key});
@@ -35,91 +36,34 @@ class SettingsScreenIOS extends StatelessWidget {
         physics: const ClampingScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
+            transitionBetweenRoutes: false,
             largeTitle: Text(AppLocalizations.of(context)!.settings, style: TextStyle(color: colors.textPrimary)),
-            backgroundColor: colors.background.withAlpha(200),
-            border: Border(bottom: BorderSide(color: colors.border)),
+            backgroundColor: colors.background.withOpacity(0.7),
+            border: null,
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const SizedBox(height: 24),
-                _buildHeader(AppLocalizations.of(context)!.trackingZones.toUpperCase(), colors),
                 const SizedBox(height: 12),
-                _buildZoneTile(
-                  context,
-                  colors,
-                  vm,
-                  ZoneType.face,
-                  AppLocalizations.of(context)!.face,
-                  CupertinoIcons.person_crop_circle,
-                ),
-                _buildZoneTile(
-                  context,
-                  colors,
-                  vm,
-                  ZoneType.bodyFront,
-                  AppLocalizations.of(context)!.bodyFront,
-                  CupertinoIcons.person_alt,
-                ),
-                _buildZoneTile(
-                  context,
-                  colors,
-                  vm,
-                  ZoneType.bodySide,
-                  AppLocalizations.of(context)!.bodySide,
-                  CupertinoIcons.person_alt_circle,
-                ),
-                _buildZoneTile(
-                  context,
-                  colors,
-                  vm,
-                  ZoneType.bodyBack,
-                  AppLocalizations.of(context)!.bodyBack,
-                  CupertinoIcons.person_alt_circle_fill,
-                ),
-                const SizedBox(height: 32),
-                _buildHeader(AppLocalizations.of(context)!.additionalTracking.toUpperCase(), colors),
-                const SizedBox(height: 12),
-                _buildZoneTile(
-                  context,
-                  colors,
-                  vm,
-                  ZoneType.measurements,
-                  AppLocalizations.of(context)!.measurements,
-                  CupertinoIcons.envelope,
-                ),
-                _buildZoneTile(
-                  context,
-                  colors,
-                  vm,
-                  ZoneType.macronutrients,
-                  AppLocalizations.of(context)!.macronutrients,
-                  CupertinoIcons.metronome,
-                ),
-                const SizedBox(height: 48),
-                _buildHeader(AppLocalizations.of(context)!.automation.toUpperCase(), colors),
-                const SizedBox(height: 12),
-                _buildToggleTile(
-                  context,
-                  colors,
-                  label: AppLocalizations.of(context)!.useLatestPhotoAsAvatar,
-                  value: config.usePhotoAsAvatar,
-                  onChanged: (val) {
-                    vm.toggleUsePhotoAsAvatar(val);
-                    if (val) {
-                      context.read<ProfileViewModel>().setLatestFrontBodyAsAvatar();
-                    }
-                  },
-                  icon: CupertinoIcons.camera_fill,
-                ),
-                const SizedBox(height: 48),
                 _buildHeader(AppLocalizations.of(context)!.appearance.toUpperCase(), colors),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _buildThemeToggle(context, colors, theme),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _buildLanguageTile(context, colors),
-                const SizedBox(height: 120),
+                const SizedBox(height: 32),
+                _buildHeader(AppLocalizations.of(context)!.dangerZone.toUpperCase(), colors),
+                const SizedBox(height: 8),
+                _buildActionTile(
+                  context,
+                  colors,
+                  label: AppLocalizations.of(context)!.deleteData,
+                  icon: CupertinoIcons.trash,
+                  isDestructive: true,
+                  onTap: () =>
+                      Navigator.push(context, CupertinoPageRoute(builder: (context) => const DeleteDataScreen())),
+                ),
+                const SizedBox(height: 100),
               ]),
             ),
           ),
@@ -135,86 +79,57 @@ class SettingsScreenIOS extends StatelessWidget {
     );
   }
 
-  Widget _buildToggleTile(
+  Widget _buildActionTile(
     BuildContext context,
     AppColors colors, {
     required String label,
-    required bool value,
-    required ValueChanged<bool> onChanged,
     required IconData icon,
+    required VoidCallback onTap,
+    bool isDestructive = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: colors.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(10)),
-              alignment: Alignment.center,
-              child: Icon(icon, color: colors.textPrimary, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(fontSize: 17, color: colors.textPrimary, fontWeight: FontWeight.w500),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isDestructive ? colors.error.withAlpha(20) : colors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, color: isDestructive ? colors.error : colors.textPrimary, size: 20),
               ),
-            ),
-            CNSwitch(value: value, onChanged: onChanged),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildZoneTile(
-    BuildContext context,
-    AppColors colors,
-    SettingsViewModel vm,
-    ZoneType zone,
-    String label,
-    IconData icon,
-  ) {
-    final isEnabled = vm.config?.isEnabled(zone) ?? false;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: colors.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(10)),
-              alignment: Alignment.center,
-              child: Icon(icon, color: colors.textPrimary, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(fontSize: 17, color: colors.textPrimary, fontWeight: FontWeight.w500),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: isDestructive ? colors.error : colors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            CNSwitch(value: isEnabled, onChanged: (val) => vm.toggleZone(zone, val)),
-          ],
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: isDestructive ? colors.error.withAlpha(150) : colors.textMuted,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -293,8 +208,18 @@ class SettingsScreenIOS extends StatelessWidget {
     final localeVm = context.read<LocaleViewModel>();
 
     final items = [
-      CNPopupMenuItem(label: AppLocalizations.of(context)!.english, icon: const CNSymbol('textformat', size: 12)),
-      CNPopupMenuItem(label: AppLocalizations.of(context)!.spanish, icon: const CNSymbol('textformat', size: 12)),
+      CNPopupMenuItem(
+        label: '🇺🇸 ${AppLocalizations.of(context)!.english}',
+        icon: const CNSymbol('textformat', size: 12),
+      ),
+      CNPopupMenuItem(
+        label: '🇫🇷 ${AppLocalizations.of(context)!.french}',
+        icon: const CNSymbol('textformat', size: 12),
+      ),
+      CNPopupMenuItem(
+        label: '🇪🇸 ${AppLocalizations.of(context)!.spanish}',
+        icon: const CNSymbol('textformat', size: 12),
+      ),
     ];
 
     return CNPopupMenuButton(
@@ -304,6 +229,8 @@ class SettingsScreenIOS extends StatelessWidget {
         if (index == 0) {
           localeVm.setLanguage(AppLanguage.english);
         } else if (index == 1) {
+          localeVm.setLanguage(AppLanguage.french);
+        } else if (index == 2) {
           localeVm.setLanguage(AppLanguage.spanish);
         }
       },

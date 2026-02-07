@@ -2,9 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cupertino_native/cupertino_native.dart';
 import '../view_models/today_view_model.dart';
+import '../view_models/onboarding_view_model.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
+import '../../core/utils/unit_converter.dart';
+import 'suffix_toggle_text_field.dart';
 
 class MacroEntrySheet extends StatefulWidget {
   final VoidCallback onDismiss;
@@ -25,11 +28,24 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
   void initState() {
     super.initState();
     final today = context.read<TodayViewModel>().today;
+    final isMetric = context.read<OnboardingViewModel>().isMetric;
+
     if (today?.macros != null) {
-      _caloriesController.text = today!.macros!.calories > 0 ? today.macros!.calories.toString() : '';
-      _proteinController.text = today.macros!.protein > 0 ? today.macros!.protein.toString() : '';
-      _carbsController.text = today.macros!.carbs > 0 ? today.macros!.carbs.toString() : '';
-      _fatController.text = today.macros!.fat > 0 ? today.macros!.fat.toString() : '';
+      _caloriesController.text = today!.macros!.calories > 0 ? today.macros!.calories.toStringAsFixed(0) : '';
+
+      final protein = today.macros!.protein;
+      final carbs = today.macros!.carbs;
+      final fat = today.macros!.fat;
+
+      if (isMetric) {
+        _proteinController.text = protein > 0 ? protein.toStringAsFixed(1) : '';
+        _carbsController.text = carbs > 0 ? carbs.toStringAsFixed(1) : '';
+        _fatController.text = fat > 0 ? fat.toStringAsFixed(1) : '';
+      } else {
+        _proteinController.text = protein > 0 ? UnitConverter.gToOz(protein).toStringAsFixed(2) : '';
+        _carbsController.text = carbs > 0 ? UnitConverter.gToOz(carbs).toStringAsFixed(2) : '';
+        _fatController.text = fat > 0 ? UnitConverter.gToOz(fat).toStringAsFixed(2) : '';
+      }
     }
   }
 
@@ -46,6 +62,7 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
+    final onboardingVm = context.watch<OnboardingViewModel>();
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     const tabBarHeight = 84.0;
@@ -64,7 +81,6 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Pull Handle
               Center(
                 child: Container(
                   width: 40,
@@ -114,12 +130,20 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                       '🍽️ ${AppLocalizations.of(context)!.calories}',
                       _caloriesController,
                       'kcal',
+                      onboardingVm,
                       colors,
+                      isCals: true,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildField('🥩 ${AppLocalizations.of(context)!.protein}', _proteinController, 'g', colors),
+                    child: _buildField(
+                      '🥩 ${AppLocalizations.of(context)!.protein}',
+                      _proteinController,
+                      onboardingVm.isMetric ? 'g' : 'oz',
+                      onboardingVm,
+                      colors,
+                    ),
                   ),
                 ],
               ),
@@ -127,10 +151,24 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildField('🥔 ${AppLocalizations.of(context)!.carbs}', _carbsController, 'g', colors),
+                    child: _buildField(
+                      '🥔 ${AppLocalizations.of(context)!.carbs}',
+                      _carbsController,
+                      onboardingVm.isMetric ? 'g' : 'oz',
+                      onboardingVm,
+                      colors,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildField('🧈 ${AppLocalizations.of(context)!.fats}', _fatController, 'g', colors)),
+                  Expanded(
+                    child: _buildField(
+                      '🧈 ${AppLocalizations.of(context)!.fats}',
+                      _fatController,
+                      onboardingVm.isMetric ? 'g' : 'oz',
+                      onboardingVm,
+                      colors,
+                    ),
+                  ),
                 ],
               ),
 
@@ -143,7 +181,10 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: CNButton(label: AppLocalizations.of(context)!.saveLogs, onPressed: _save),
+                    child: CNButton(
+                      label: AppLocalizations.of(context)!.saveLogs,
+                      onPressed: () => _save(onboardingVm),
+                    ),
                   ),
                 ],
               ),
@@ -167,7 +208,14 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, String unit, AppColors colors) {
+  Widget _buildField(
+    String label,
+    TextEditingController controller,
+    String unit,
+    OnboardingViewModel vm,
+    AppColors colors, {
+    bool isCals = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,34 +224,45 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary),
         ),
         const SizedBox(height: 8),
-        CupertinoTextField(
+        SuffixToggleTextField(
           controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.border),
-          ),
-          style: TextStyle(color: colors.textPrimary, fontSize: 17),
           placeholder: '0',
-          suffix: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Text(unit, style: TextStyle(color: colors.textMuted, fontSize: 13)),
-          ),
+          suffix: unit,
+          colors: colors,
+          onSuffixTap: () {
+            if (isCals) return; // Calories don't toggle
+
+            final controllers = [_proteinController, _carbsController, _fatController];
+            for (var c in controllers) {
+              final val = double.tryParse(c.text);
+              if (val != null) {
+                if (vm.isMetric) {
+                  c.text = UnitConverter.gToOz(val).toStringAsFixed(2);
+                } else {
+                  c.text = UnitConverter.ozToG(val).toStringAsFixed(1);
+                }
+              }
+            }
+            vm.toggleUnits();
+          },
         ),
       ],
     );
   }
 
-  void _save() async {
-    final calories = double.tryParse(_caloriesController.text) ?? 0;
-    final protein = double.tryParse(_proteinController.text) ?? 0;
-    final carbs = double.tryParse(_carbsController.text) ?? 0;
-    final fat = double.tryParse(_fatController.text) ?? 0;
+  void _save(OnboardingViewModel vm) async {
+    double calories = double.tryParse(_caloriesController.text) ?? 0;
+    double protein = double.tryParse(_proteinController.text) ?? 0;
+    double carbs = double.tryParse(_carbsController.text) ?? 0;
+    double fat = double.tryParse(_fatController.text) ?? 0;
+
+    if (!vm.isMetric) {
+      protein = UnitConverter.ozToG(protein);
+      carbs = UnitConverter.ozToG(carbs);
+      fat = UnitConverter.ozToG(fat);
+    }
 
     await context.read<TodayViewModel>().updateMacros(calories, protein, carbs, fat);
-    // Usually loggers dismiss after save.
     widget.onDismiss();
   }
 }

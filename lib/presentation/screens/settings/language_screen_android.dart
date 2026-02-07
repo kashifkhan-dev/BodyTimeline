@@ -27,8 +27,8 @@ class LanguageScreenAndroid extends StatelessWidget {
       body: ListView(
         children: [
           RadioListTile<AppLanguage>(
-            title: Text(l10n.spanish, style: TextStyle(color: colors.textPrimary)),
-            value: AppLanguage.spanish,
+            title: Text('🇺🇸 ${l10n.english}', style: TextStyle(color: colors.textPrimary)),
+            value: AppLanguage.english,
             groupValue: localeVm.currentLanguage,
             onChanged: (value) {
               if (value != null) localeVm.setLanguage(value);
@@ -36,8 +36,17 @@ class LanguageScreenAndroid extends StatelessWidget {
             activeColor: colors.primary,
           ),
           RadioListTile<AppLanguage>(
-            title: Text(l10n.english, style: TextStyle(color: colors.textPrimary)),
-            value: AppLanguage.english,
+            title: Text('🇫🇷 ${l10n.french}', style: TextStyle(color: colors.textPrimary)),
+            value: AppLanguage.french,
+            groupValue: localeVm.currentLanguage,
+            onChanged: (value) {
+              if (value != null) localeVm.setLanguage(value);
+            },
+            activeColor: colors.primary,
+          ),
+          RadioListTile<AppLanguage>(
+            title: Text('🇪🇸 ${l10n.spanish}', style: TextStyle(color: colors.textPrimary)),
+            value: AppLanguage.spanish,
             groupValue: localeVm.currentLanguage,
             onChanged: (value) {
               if (value != null) localeVm.setLanguage(value);

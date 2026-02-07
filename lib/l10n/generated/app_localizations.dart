@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,6 +97,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
+    Locale('fr'),
   ];
 
   /// No description provided for @today.
@@ -103,6 +105,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today'**
   String get today;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 
   /// No description provided for @profile.
   ///
@@ -151,6 +159,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spanish'**
   String get spanish;
+
+  /// No description provided for @french.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get french;
 
   /// No description provided for @save.
   ///
@@ -1213,6 +1227,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change'**
   String get change;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See the change'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See how your body changes each day'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get onboardingGetStarted;
+
+  /// No description provided for @onboardingGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your main goal?'**
+  String get onboardingGoalTitle;
+
+  /// No description provided for @onboardingGenderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your gender'**
+  String get onboardingGenderTitle;
+
+  /// No description provided for @onboardingAgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How old are you?'**
+  String get onboardingAgeTitle;
+
+  /// No description provided for @onboardingHeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your height?'**
+  String get onboardingHeightTitle;
+
+  /// No description provided for @onboardingWeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your current weight?'**
+  String get onboardingWeightTitle;
+
+  /// No description provided for @onboardingFrequencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How often do you work out?'**
+  String get onboardingFrequencyTitle;
+
+  /// No description provided for @onboardingFinalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Day 1 starts today'**
+  String get onboardingFinalTitle;
+
+  /// No description provided for @onboardingStartJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Journey'**
+  String get onboardingStartJourney;
+
+  /// No description provided for @onboardingReady.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re ready for you.'**
+  String get onboardingReady;
+
+  /// No description provided for @continueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
+  /// No description provided for @onboardingAgePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get onboardingAgePlaceholder;
+
+  /// No description provided for @onboardingHeightPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get onboardingHeightPlaceholder;
+
+  /// No description provided for @onboardingWeightPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get onboardingWeightPlaceholder;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
+
+  /// No description provided for @loseFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Lose fat'**
+  String get loseFat;
+
+  /// No description provided for @buildMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Build muscle'**
+  String get buildMuscle;
+
+  /// No description provided for @bodyRecomposition.
+  ///
+  /// In en, this message translates to:
+  /// **'Body recomcomposition'**
+  String get bodyRecomposition;
+
+  /// No description provided for @trackProgressOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Just track my progress'**
+  String get trackProgressOnly;
+
+  /// No description provided for @dontTrain.
+  ///
+  /// In en, this message translates to:
+  /// **'I don’t train'**
+  String get dontTrain;
+
+  /// No description provided for @train1_2Times.
+  ///
+  /// In en, this message translates to:
+  /// **'1–2 times per week'**
+  String get train1_2Times;
+
+  /// No description provided for @train3_4Times.
+  ///
+  /// In en, this message translates to:
+  /// **'3–4 times per week'**
+  String get train3_4Times;
+
+  /// No description provided for @train5PlusTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'5+ times per week'**
+  String get train5PlusTimes;
 }
 
 class _AppLocalizationsDelegate
@@ -1226,7 +1396,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+      <String>['en', 'es', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1239,6 +1409,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
   }
 
   throw FlutterError(

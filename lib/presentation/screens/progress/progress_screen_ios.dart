@@ -53,6 +53,7 @@ class _ProgressScreenIOSState extends State<ProgressScreenIOS> {
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
       navigationBar: CupertinoNavigationBar(
+        transitionBetweenRoutes: false,
         middle: Text(AppLocalizations.of(context)!.yourProgress, style: TextStyle(color: colors.textPrimary)),
         backgroundColor: colors.background.withAlpha(200),
         border: Border(bottom: BorderSide(color: colors.border)),

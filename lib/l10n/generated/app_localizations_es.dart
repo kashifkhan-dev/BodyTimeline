@@ -12,6 +12,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get today => 'Hoy';
 
   @override
+  String get close => 'Cerrar';
+
+  @override
   String get profile => 'Perfil';
 
   @override
@@ -34,6 +37,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get spanish => 'Español';
+
+  @override
+  String get french => 'Français';
 
   @override
   String get save => 'Guardar';
@@ -593,4 +599,82 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get change => 'Cambiar';
+
+  @override
+  String get onboardingWelcomeTitle => 'Ver el cambio';
+
+  @override
+  String get onboardingSubtitle => 'Ver cómo tu cuerpo cambia cada día';
+
+  @override
+  String get onboardingGetStarted => 'Comenzar';
+
+  @override
+  String get onboardingGoalTitle => '¿Cuál es tu objetivo principal?';
+
+  @override
+  String get onboardingGenderTitle => 'Selecciona tu género';
+
+  @override
+  String get onboardingAgeTitle => '¿Cuántos años tienes?';
+
+  @override
+  String get onboardingHeightTitle => '¿Cuál es tu altura?';
+
+  @override
+  String get onboardingWeightTitle => '¿Cuál es tu peso actual?';
+
+  @override
+  String get onboardingFrequencyTitle => '¿Con qué frecuencia entrenas?';
+
+  @override
+  String get onboardingFinalTitle => 'El día 1 comienza hoy';
+
+  @override
+  String get onboardingStartJourney => 'Iniciar viaje';
+
+  @override
+  String get onboardingReady => 'Estamos listos para ti.';
+
+  @override
+  String get continueButton => 'Continuar';
+
+  @override
+  String get onboardingAgePlaceholder => 'Edad';
+
+  @override
+  String get onboardingHeightPlaceholder => 'Altura';
+
+  @override
+  String get onboardingWeightPlaceholder => 'Peso';
+
+  @override
+  String get male => 'Hombre';
+
+  @override
+  String get female => 'Mujer';
+
+  @override
+  String get loseFat => 'Perder grasa';
+
+  @override
+  String get buildMuscle => 'Ganar músculo';
+
+  @override
+  String get bodyRecomposition => 'Recomposición corporal';
+
+  @override
+  String get trackProgressOnly => 'Solo seguir mi progreso';
+
+  @override
+  String get dontTrain => 'No entreno';
+
+  @override
+  String get train1_2Times => '1–2 veces por semana';
+
+  @override
+  String get train3_4Times => '3–4 veces por semana';
+
+  @override
+  String get train5PlusTimes => '5+ veces por semana';
 }

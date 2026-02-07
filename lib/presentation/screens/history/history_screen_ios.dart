@@ -44,6 +44,7 @@ class HistoryScreenIOS extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           CupertinoSliverNavigationBar(
+            transitionBetweenRoutes: false,
             largeTitle: Text(AppLocalizations.of(context)!.history, style: TextStyle(color: colors.textPrimary)),
             backgroundColor: colors.background.withAlpha(200),
             border: Border(bottom: BorderSide(color: colors.border)),

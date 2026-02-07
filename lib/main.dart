@@ -23,6 +23,7 @@ import 'presentation/view_models/history_view_model.dart';
 import 'presentation/view_models/progress_view_model.dart';
 import 'presentation/view_models/stats_view_model.dart';
 import 'presentation/screens/main_shell.dart';
+import 'presentation/screens/onboarding/onboarding_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data/repositories/in_memory_user_repository.dart';
@@ -35,6 +36,7 @@ import 'package:workout/l10n/generated/app_localizations.dart';
 import 'data/repositories/prefs_locale_repository.dart';
 import 'domain/repositories/locale_repository.dart';
 import 'presentation/view_models/locale_view_model.dart';
+import 'presentation/view_models/onboarding_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +80,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => StatsViewModel(workoutRepo)),
         ChangeNotifierProvider(create: (context) => ProfileViewModel(userRepo, workoutRepo, settingsRepo)),
         ChangeNotifierProvider(create: (_) => LocaleViewModel(localeRepo)),
+        ChangeNotifierProvider(create: (context) => OnboardingViewModel(prefs, workoutRepo)),
       ],
       child: const WorkoutApp(),
     ),
@@ -104,8 +107,8 @@ class WorkoutApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [Locale('en'), Locale('es')],
-        home: const MainShell(),
+        supportedLocales: const [Locale('en'), Locale('es'), Locale('fr')],
+        home: const OnboardingScreen(),
       );
     } else {
       return MaterialApp(
@@ -121,8 +124,8 @@ class WorkoutApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [Locale('en'), Locale('es')],
-        home: const MainShell(),
+        supportedLocales: const [Locale('en'), Locale('es'), Locale('fr')],
+        home: const OnboardingScreen(),
       );
     }
   }

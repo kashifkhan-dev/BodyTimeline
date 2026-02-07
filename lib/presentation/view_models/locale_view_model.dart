@@ -4,7 +4,7 @@ import '../../domain/repositories/locale_repository.dart';
 
 class LocaleViewModel extends ChangeNotifier {
   final LocaleRepository _repository;
-  AppLanguage _currentLanguage = AppLanguage.spanish;
+  AppLanguage _currentLanguage = AppLanguage.english;
 
   LocaleViewModel(this._repository) {
     _loadLocale();

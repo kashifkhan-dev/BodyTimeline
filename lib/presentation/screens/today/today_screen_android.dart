@@ -46,14 +46,6 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
   }
 
-  void _navigateToDeleteData() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const DeleteDataScreen()));
-  }
-
-  void _navigateToLanguage() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const LanguageScreen()));
-  }
-
   Widget _buildSheetContent(ActiveSheet sheet) {
     switch (sheet) {
       case ActiveSheet.macros:
@@ -96,7 +88,12 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
         elevation: 0,
-        actions: [Padding(padding: const EdgeInsets.only(right: 16), child: _buildProfileAvatar(colors))],
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(icon: _buildProfileAvatar(colors), onPressed: () => _navigateToProfile()),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () => vm.refresh(),
@@ -179,71 +176,21 @@ class _TodayScreenAndroidState extends State<TodayScreenAndroid> {
     final profileVm = context.watch<ProfileViewModel>();
     final path = profileVm.avatarPath;
 
-    return PopupMenuButton<int>(
-      offset: const Offset(0, 48),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: colors.background,
-      elevation: 8,
-      onSelected: (value) {
-        if (value == 1) {
-          _navigateToProfile();
-        } else if (value == 2) {
-          _navigateToLanguage();
-        } else if (value == 3) {
-          _navigateToDeleteData();
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 1,
-          child: Row(
-            children: [
-              Icon(Icons.person_outline, size: 20, color: colors.textPrimary),
-              const SizedBox(width: 12),
-              Text(AppLocalizations.of(context)!.profile, style: TextStyle(color: colors.textPrimary)),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 2,
-          child: Row(
-            children: [
-              Icon(Icons.language_outlined, size: 20, color: colors.textPrimary),
-              const SizedBox(width: 12),
-              Text(AppLocalizations.of(context)!.language, style: TextStyle(color: colors.textPrimary)),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 3,
-          child: Row(
-            children: [
-              const Icon(Icons.delete_outline, size: 20, color: Colors.red),
-              const SizedBox(width: 12),
-              Text(
-                AppLocalizations.of(context)!.deleteData,
-                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: colors.surface,
+      child: ClipOval(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildAvatarImage(path),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colors.primary.withAlpha(40), width: 1),
               ),
-            ],
-          ),
-        ),
-      ],
-      child: CircleAvatar(
-        radius: 20,
-        backgroundColor: colors.surface,
-        child: ClipOval(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _buildAvatarImage(path),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: colors.primary.withAlpha(40), width: 1),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

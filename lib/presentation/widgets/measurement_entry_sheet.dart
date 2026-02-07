@@ -2,11 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cupertino_native/cupertino_native.dart';
 import '../view_models/today_view_model.dart';
+import '../view_models/onboarding_view_model.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../domain/entities/measurement.dart';
 import '../../domain/value_objects/measurement_type.dart';
+import '../../core/utils/unit_converter.dart';
+import 'suffix_toggle_text_field.dart';
 
 class MeasurementEntrySheet extends StatefulWidget {
   final VoidCallback onDismiss;
@@ -24,15 +27,28 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
   void initState() {
     super.initState();
     final today = context.read<TodayViewModel>().today;
+    final isMetric = context.read<OnboardingViewModel>().isMetric;
 
     for (final type in MeasurementType.values) {
       final existing = today?.measurements.firstWhere(
         (m) => m.type == type,
-        orElse: () => const Measurement(type: MeasurementType.weight, value: -1),
+        orElse: () => Measurement(type: type, value: -1, unit: type == MeasurementType.weight ? 'kg' : 'cm'),
       );
-      _controllers[type] = TextEditingController(
-        text: (existing != null && existing.value >= 0) ? existing.value.toString() : '',
-      );
+
+      String initialText = '';
+      if (existing != null && existing.value >= 0) {
+        if (isMetric) {
+          initialText = existing.value.toStringAsFixed(1);
+        } else {
+          if (type == MeasurementType.weight) {
+            initialText = UnitConverter.kgToLbs(existing.value).toStringAsFixed(1);
+          } else {
+            initialText = UnitConverter.cmToInches(existing.value).toStringAsFixed(1);
+          }
+        }
+      }
+
+      _controllers[type] = TextEditingController(text: initialText);
     }
   }
 
@@ -48,6 +64,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
+    final onboardingVm = context.watch<OnboardingViewModel>();
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     const tabBarHeight = 84.0;
@@ -71,7 +88,6 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pull Handle
             Center(
               child: Container(
                 width: 36,
@@ -100,13 +116,18 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
-                  _buildField('⚖️ ${AppLocalizations.of(context)!.weight}', MeasurementType.weight, 'kg', colors),
+                  _buildField(
+                    '⚖️ ${AppLocalizations.of(context)!.weight}',
+                    MeasurementType.weight,
+                    onboardingVm,
+                    colors,
+                  ),
                   const SizedBox(height: 16),
-                  _buildField('📏 ${AppLocalizations.of(context)!.waist}', MeasurementType.waist, 'cm', colors),
+                  _buildField('📏 ${AppLocalizations.of(context)!.waist}', MeasurementType.waist, onboardingVm, colors),
                   const SizedBox(height: 16),
-                  _buildField('👕 ${AppLocalizations.of(context)!.chest}', MeasurementType.chest, 'cm', colors),
+                  _buildField('👕 ${AppLocalizations.of(context)!.chest}', MeasurementType.chest, onboardingVm, colors),
                   const SizedBox(height: 16),
-                  _buildField('👖 ${AppLocalizations.of(context)!.hips}', MeasurementType.hips, 'cm', colors),
+                  _buildField('👖 ${AppLocalizations.of(context)!.hips}', MeasurementType.hips, onboardingVm, colors),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -114,7 +135,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '💪 ${AppLocalizations.of(context)!.armL}',
                           MeasurementType.armLeft,
-                          'cm',
+                          onboardingVm,
                           colors,
                         ),
                       ),
@@ -123,7 +144,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '💪 ${AppLocalizations.of(context)!.armR}',
                           MeasurementType.armRight,
-                          'cm',
+                          onboardingVm,
                           colors,
                         ),
                       ),
@@ -136,7 +157,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '🦵 ${AppLocalizations.of(context)!.thighL}',
                           MeasurementType.thighLeft,
-                          'cm',
+                          onboardingVm,
                           colors,
                         ),
                       ),
@@ -145,14 +166,14 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '🦵 ${AppLocalizations.of(context)!.thighR}',
                           MeasurementType.thighRight,
-                          'cm',
+                          onboardingVm,
                           colors,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildField('🧣 ${AppLocalizations.of(context)!.neck}', MeasurementType.neck, 'cm', colors),
+                  _buildField('🧣 ${AppLocalizations.of(context)!.neck}', MeasurementType.neck, onboardingVm, colors),
                 ],
               ),
             ),
@@ -164,7 +185,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: CNButton(label: AppLocalizations.of(context)!.saveAll, onPressed: _save),
+                  child: CNButton(label: AppLocalizations.of(context)!.saveAll, onPressed: () => _save(onboardingVm)),
                 ),
               ],
             ),
@@ -175,7 +196,9 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
     );
   }
 
-  Widget _buildField(String label, MeasurementType type, String unit, AppColors colors) {
+  Widget _buildField(String label, MeasurementType type, OnboardingViewModel vm, AppColors colors) {
+    final suffix = type == MeasurementType.weight ? (vm.isMetric ? 'kg' : 'lbs') : (vm.isMetric ? 'cm' : 'in');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -184,33 +207,56 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary),
         ),
         const SizedBox(height: 8),
-        CupertinoTextField(
-          controller: _controllers[type],
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.border),
-          ),
-          style: TextStyle(color: colors.textPrimary, fontSize: 16),
+        SuffixToggleTextField(
+          controller: _controllers[type]!,
           placeholder: '0.0',
-          placeholderStyle: TextStyle(color: colors.textMuted),
-          suffix: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Text(unit, style: TextStyle(color: colors.textMuted, fontSize: 13)),
-          ),
+          suffix: suffix,
+          colors: colors,
+          onSuffixTap: () {
+            // Convert all relevant controllers
+            final isWeight = type == MeasurementType.weight;
+
+            _controllers.forEach((t, controller) {
+              final val = double.tryParse(controller.text);
+              if (val != null) {
+                if (isWeight && t == MeasurementType.weight) {
+                  if (vm.isMetric) {
+                    controller.text = UnitConverter.kgToLbs(val).toStringAsFixed(1);
+                  } else {
+                    controller.text = UnitConverter.lbsToKg(val).toStringAsFixed(1);
+                  }
+                } else if (!isWeight && t != MeasurementType.weight) {
+                  if (vm.isMetric) {
+                    controller.text = UnitConverter.cmToInches(val).toStringAsFixed(1);
+                  } else {
+                    controller.text = UnitConverter.inchesToCm(val).toStringAsFixed(1);
+                  }
+                }
+              }
+            });
+            vm.toggleUnits();
+          },
         ),
       ],
     );
   }
 
-  void _save() async {
+  void _save(OnboardingViewModel vm) async {
     final List<Measurement> measurements = [];
     _controllers.forEach((type, controller) {
       final value = double.tryParse(controller.text);
       if (value != null && value > 0) {
-        measurements.add(Measurement(type: type, value: value));
+        double normalizedValue = value;
+        if (!vm.isMetric) {
+          if (type == MeasurementType.weight) {
+            normalizedValue = UnitConverter.lbsToKg(value);
+          } else {
+            normalizedValue = UnitConverter.inchesToCm(value);
+          }
+        }
+        measurements.add(
+          Measurement(type: type, value: normalizedValue, unit: type == MeasurementType.weight ? 'kg' : 'cm'),
+        );
       }
     });
 

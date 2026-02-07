@@ -1,8 +1,12 @@
 import 'dart:io';
+
+import 'package:cupertino_native/cupertino_native.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/profile_view_model.dart';
+import '../../view_models/settings_view_model.dart';
+import '../../../domain/value_objects/zone_type.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
@@ -20,49 +24,150 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
   @override
   Widget build(BuildContext context) {
     final colors = context.watch<ThemeProvider>().colors(context);
+    final theme = context.watch<ThemeProvider>();
+    final settingsVm = context.watch<SettingsViewModel>();
+    final config = settingsVm.config;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (config == null) {
+      return Container(
+        color: colors.background,
+        child: const Center(child: CupertinoActivityIndicator()),
+      );
+    }
 
     return CupertinoPageScaffold(
       backgroundColor: colors.background,
       navigationBar: CupertinoNavigationBar(
-        middle: Text(AppLocalizations.of(context)!.profile, style: TextStyle(color: colors.textPrimary)),
-        backgroundColor: colors.background.withAlpha(200),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Text(l10n.close, style: TextStyle(color: colors.primary)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        middle: Text(l10n.profile, style: TextStyle(color: colors.textPrimary)),
+        backgroundColor: colors.background.withOpacity(0.7),
         border: Border(bottom: BorderSide(color: colors.border)),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildAvatarPreview(context, colors),
-              const SizedBox(height: 40),
-              Text(
-                AppLocalizations.of(context)!.changeAvatar,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textMuted,
-                  letterSpacing: 0.5,
-                ),
-              ),
+              const SizedBox(height: 48),
+
+              _buildHeader(l10n.changeAvatar, colors),
               const SizedBox(height: 12),
-              _buildIOSOption(
-                0,
-                AppLocalizations.of(context)!.latestProgressImage,
-                AppLocalizations.of(context)!.useRecentFrontPhoto,
-                colors,
-              ),
+              _buildIOSOption(0, l10n.latestProgressImage, l10n.useRecentFrontPhoto, colors),
               const SizedBox(height: 12),
-              _buildIOSOption(
-                1,
-                AppLocalizations.of(context)!.chooseFromGallery,
-                AppLocalizations.of(context)!.pickImageFromDevice,
-                colors,
-              ),
+              _buildIOSOption(1, l10n.chooseFromGallery, l10n.pickImageFromDevice, colors),
+
               const SizedBox(height: 48),
               _buildActionButtons(context, colors),
+
+              const SizedBox(height: 40),
+              _buildHeader(l10n.trackingZones.toUpperCase(), colors),
+              const SizedBox(height: 12),
+              _buildZoneTile(context, colors, settingsVm, ZoneType.face, l10n.face, CupertinoIcons.person_crop_circle),
+
+              _buildZoneTile(
+                context,
+                colors,
+                settingsVm,
+                ZoneType.bodyFront,
+                l10n.bodyFront,
+                CupertinoIcons.person_alt,
+              ),
+              _buildZoneTile(
+                context,
+                colors,
+                settingsVm,
+                ZoneType.bodySide,
+                l10n.bodySide,
+                CupertinoIcons.person_alt_circle,
+              ),
+              _buildZoneTile(
+                context,
+                colors,
+                settingsVm,
+                ZoneType.bodyBack,
+                l10n.bodyBack,
+                CupertinoIcons.person_alt_circle_fill,
+              ),
+
+              const SizedBox(height: 32),
+              _buildHeader(l10n.additionalTracking.toUpperCase(), colors),
+              const SizedBox(height: 12),
+              _buildZoneTile(
+                context,
+                colors,
+                settingsVm,
+                ZoneType.measurements,
+                l10n.measurements,
+                CupertinoIcons.envelope,
+              ),
+              _buildZoneTile(
+                context,
+                colors,
+                settingsVm,
+                ZoneType.macronutrients,
+                l10n.macronutrients,
+                CupertinoIcons.metronome,
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(String title, AppColors colors) {
+    return Text(
+      title,
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textMuted, letterSpacing: 0.5),
+    );
+  }
+
+  Widget _buildZoneTile(
+    BuildContext context,
+    AppColors colors,
+    SettingsViewModel vm,
+    ZoneType zone,
+    String label,
+    IconData icon,
+  ) {
+    final isEnabled = vm.config?.isEnabled(zone) ?? false;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(10)),
+              alignment: Alignment.center,
+              child: Icon(icon, color: colors.textPrimary, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(fontSize: 17, color: colors.textPrimary, fontWeight: FontWeight.w500),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            CNSwitch(value: isEnabled, onChanged: (val) => vm.toggleZone(zone, val)),
+          ],
         ),
       ),
     );
@@ -76,8 +181,8 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
       child: Column(
         children: [
           Container(
-            width: 140,
-            height: 140,
+            width: 170,
+            height: 170,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: colors.surface,
@@ -174,11 +279,6 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
                     style: const TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),
                   ),
           ),
-        ),
-        const SizedBox(height: 16),
-        CupertinoButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: colors.textMuted)),
         ),
       ],
     );
