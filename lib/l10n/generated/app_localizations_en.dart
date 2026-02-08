@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
+  String get claimMembershipRewards => 'Claim Free Membership Rewards';
+
+  @override
   String get profile => 'Profile';
 
   @override

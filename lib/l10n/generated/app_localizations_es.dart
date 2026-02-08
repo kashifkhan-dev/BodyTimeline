@@ -15,6 +15,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get close => 'Cerrar';
 
   @override
+  String get claimMembershipRewards => 'Reclamar Recompensas Gratis';
+
+  @override
   String get profile => 'Perfil';
 
   @override

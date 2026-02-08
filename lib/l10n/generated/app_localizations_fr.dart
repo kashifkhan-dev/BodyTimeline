@@ -15,6 +15,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get close => 'Fermer';
 
   @override
+  String get claimMembershipRewards => 'Réclamer Récompenses Gratuites';
+
+  @override
   String get profile => 'Profil';
 
   @override

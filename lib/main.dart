@@ -37,6 +37,7 @@ import 'data/repositories/prefs_locale_repository.dart';
 import 'domain/repositories/locale_repository.dart';
 import 'presentation/view_models/locale_view_model.dart';
 import 'presentation/view_models/onboarding_view_model.dart';
+import 'core/services/review_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,10 +72,13 @@ void main() async {
         Provider<SettingsRepository>.value(value: settingsRepo),
         Provider<UserRepository>.value(value: userRepo),
         Provider<LocaleRepository>.value(value: localeRepo),
+        Provider<ReviewService>(create: (_) => ReviewService()),
 
         // ViewModel Injection
         ChangeNotifierProvider(create: (_) => SettingsViewModel(settingsRepo)),
-        ChangeNotifierProvider(create: (context) => TodayViewModel(workoutRepo, settingsRepo)),
+        ChangeNotifierProvider(
+          create: (context) => TodayViewModel(workoutRepo, settingsRepo, context.read<ReviewService>()),
+        ),
         ChangeNotifierProvider(create: (context) => HistoryViewModel(workoutRepo)),
         ChangeNotifierProvider(create: (context) => ProgressViewModel(workoutRepo, settingsRepo)),
         ChangeNotifierProvider(create: (context) => StatsViewModel(workoutRepo)),
@@ -97,7 +101,7 @@ class WorkoutApp extends StatelessWidget {
 
     if (Platform.isIOS) {
       return CupertinoApp(
-        title: 'Workout',
+        title: 'BodyTimeline',
         debugShowCheckedModeBanner: false,
         theme: themeProvider.cupertinoTheme(context),
         locale: localeProvider.locale,
@@ -112,7 +116,7 @@ class WorkoutApp extends StatelessWidget {
       );
     } else {
       return MaterialApp(
-        title: 'Workout',
+        title: 'BodyTimeline',
         debugShowCheckedModeBanner: false,
         theme: themeProvider.materialTheme(context),
         darkTheme: themeProvider.materialTheme(context),

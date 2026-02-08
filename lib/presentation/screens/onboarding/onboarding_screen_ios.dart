@@ -60,7 +60,7 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
     _rocketRotate =
         Tween<double>(
           begin: 0.0,
-          end: 0.18, // Significant tilt (~65 degrees) toward the right path
+          end: -0.07, // Tilt upward-right to match trajectory (~-25 degrees)
         ).animate(
           CurvedAnimation(
             parent: _rocketController,

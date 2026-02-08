@@ -112,6 +112,12 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get close;
 
+  /// No description provided for @claimMembershipRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim Free Membership Rewards'**
+  String get claimMembershipRewards;
+
   /// No description provided for @profile.
   ///
   /// In en, this message translates to:

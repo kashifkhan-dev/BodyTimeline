@@ -8,6 +8,8 @@ import '../../view_models/settings_view_model.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/color_palette.dart';
 import '../profile/delete_data_screen.dart';
+import '../common/webview_page.dart';
+import '../../widgets/prominent_document_button.dart';
 
 class SettingsScreenAndroid extends StatelessWidget {
   const SettingsScreenAndroid({super.key});
@@ -53,6 +55,19 @@ class SettingsScreenAndroid extends StatelessWidget {
             icon: Icons.delete_outline,
             isDestructive: true,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DeleteDataScreen())),
+          ),
+          const SizedBox(height: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ProminentDocumentButton(
+              label: AppLocalizations.of(context)!.claimMembershipRewards,
+              colors: colors,
+              onTap: () => showWebViewSheet(
+                context,
+                url: "https://docs.google.com/document/d/1-AkL6m-7NdHOXM2Pw7-a6QTgPR7Ro0Ofq5K-WEQWeFY/edit",
+                title: "WIN REWARDS",
+              ),
+            ),
           ),
           const SizedBox(height: 60),
         ],

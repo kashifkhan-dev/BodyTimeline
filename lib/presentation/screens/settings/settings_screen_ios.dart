@@ -12,6 +12,8 @@ import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../view_models/locale_view_model.dart';
 import '../../../domain/entities/app_language.dart';
 import '../profile/delete_data_screen.dart';
+import '../common/webview_page.dart';
+import '../../widgets/prominent_document_button.dart';
 
 class SettingsScreenIOS extends StatelessWidget {
   const SettingsScreenIOS({super.key});
@@ -62,6 +64,19 @@ class SettingsScreenIOS extends StatelessWidget {
                   isDestructive: true,
                   onTap: () =>
                       Navigator.push(context, CupertinoPageRoute(builder: (context) => const DeleteDataScreen())),
+                ),
+                const SizedBox(height: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ProminentDocumentButton(
+                    label: AppLocalizations.of(context)!.claimMembershipRewards,
+                    colors: colors,
+                    onTap: () => showWebViewSheet(
+                      context,
+                      url: "https://docs.google.com/document/d/1-AkL6m-7NdHOXM2Pw7-a6QTgPR7Ro0Ofq5K-WEQWeFY/edit",
+                      title: "App Documentation",
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 100),
               ]),

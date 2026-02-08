@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:workout/core/services/review_service.dart';
 import '../../domain/entities/workout_day.dart';
 import '../../domain/repositories/workout_repository.dart';
 import '../../domain/repositories/settings_repository.dart';
@@ -11,6 +12,7 @@ import '../../domain/value_objects/zone_type.dart';
 class TodayViewModel extends ChangeNotifier {
   final WorkoutRepository _workoutRepository;
   final SettingsRepository _settingsRepository;
+  final ReviewService _reviewService;
   WorkoutDay? _today;
   bool _isLoading = true;
 
@@ -19,7 +21,7 @@ class TodayViewModel extends ChangeNotifier {
   MacroLog? _sessionMacros;
   List<Measurement>? _sessionMeasurements;
 
-  TodayViewModel(this._workoutRepository, this._settingsRepository) {
+  TodayViewModel(this._workoutRepository, this._settingsRepository, this._reviewService) {
     _subscriptions.add(_workoutRepository.changes.listen((_) => refresh()));
     _subscriptions.add(_settingsRepository.changes.listen((_) => refresh()));
     refresh();
@@ -98,6 +100,7 @@ class TodayViewModel extends ChangeNotifier {
   Future<void> saveSessionPhoto(ZoneType zone, PhotoRecord photo) async {
     _sessionPhotos[zone] = photo;
     notifyListeners();
+    _checkAndTriggerReview();
   }
 
   Future<void> updateMacros(double calories, double protein, double carbs, double fat) async {
@@ -105,12 +108,21 @@ class TodayViewModel extends ChangeNotifier {
     await _workoutRepository.saveMacros(DateTime.now(), macros);
     _sessionMacros = macros;
     notifyListeners();
+    _checkAndTriggerReview();
   }
 
   Future<void> updateMeasurements(List<Measurement> measurements) async {
     await _workoutRepository.saveMeasurements(DateTime.now(), measurements);
     _sessionMeasurements = measurements;
     notifyListeners();
+    _checkAndTriggerReview();
+  }
+
+  void _checkAndTriggerReview() {
+    if (completionPercentage >= 1.0) {
+      debugPrint('🎯 Daily milestone reached! Completion: 100%. Requesting review.');
+      _reviewService.requestReviewIfAppropriate();
+    }
   }
 
   final List<StreamSubscription> _subscriptions = [];
