@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.syntaxr.workout" "\0"
+            VALUE "CompanyName", "com.syntaxr.mybodytimeline" "\0"
             VALUE "FileDescription", "workout" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "workout" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.syntaxr.workout. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.syntaxr.mybodytimeline. All rights reserved." "\0"
             VALUE "OriginalFilename", "workout.exe" "\0"
-            VALUE "ProductName", "workout" "\0"
+            VALUE "ProductName", "MyBodyTimeline" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

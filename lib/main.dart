@@ -103,7 +103,7 @@ class WorkoutApp extends StatelessWidget {
 
     if (Platform.isIOS) {
       return CupertinoApp(
-        title: 'BodyTimeline',
+        title: 'MyBodyTimeline',
         debugShowCheckedModeBanner: false,
         theme: themeProvider.cupertinoTheme(context),
         locale: localeProvider.locale,
@@ -118,7 +118,7 @@ class WorkoutApp extends StatelessWidget {
       );
     } else {
       return MaterialApp(
-        title: 'BodyTimeline',
+        title: 'MyBodyTimeline',
         debugShowCheckedModeBanner: false,
         theme: themeProvider.materialTheme(context),
         darkTheme: themeProvider.materialTheme(context),

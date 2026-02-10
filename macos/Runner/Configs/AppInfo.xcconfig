@@ -8,7 +8,7 @@
 PRODUCT_NAME = workout
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.syntaxr.workout.workout
+PRODUCT_BUNDLE_IDENTIFIER = com.syntaxr.mybodytimeline
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.syntaxr.workout. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.syntaxr.mybodytimeline. All rights reserved.

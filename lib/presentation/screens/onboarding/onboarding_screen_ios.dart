@@ -14,6 +14,7 @@ import '../../../domain/entities/app_language.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../../core/providers/units_provider.dart';
 import 'package:in_app_review/in_app_review.dart';
+import '../../../core/services/review_service.dart';
 
 class OnboardingScreenIOS extends StatefulWidget {
   const OnboardingScreenIOS({super.key});
@@ -575,10 +576,18 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
       onButtonPressed: () async {
         await vm.completeOnboarding();
         // Trigger native app review prompt
+        /*
         final InAppReview inAppReview = InAppReview.instance;
         if (await inAppReview.isAvailable()) {
           inAppReview.requestReview();
         }
+        */
+
+        // Use the actual ReviewService for a one-time request
+        if (mounted) {
+          await context.read<ReviewService>().requestReviewIfAppropriate();
+        }
+
         if (mounted) {
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
