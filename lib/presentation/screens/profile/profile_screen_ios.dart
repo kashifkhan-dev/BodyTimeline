@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -268,16 +268,10 @@ class _ProfileScreenIOSState extends State<ProfileScreenIOS> {
       children: [
         SizedBox(
           width: double.infinity,
-          child: CupertinoButton(
-            color: colors.primary,
-            borderRadius: BorderRadius.circular(16),
+          child: CNButton(
+            label: AppLocalizations.of(context)!.updateProfilePicture,
+            config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
             onPressed: vm.isLoading ? null : () => _handleSave(context),
-            child: vm.isLoading
-                ? const CupertinoActivityIndicator(color: CupertinoColors.white)
-                : Text(
-                    AppLocalizations.of(context)!.updateProfilePicture,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),
-                  ),
           ),
         ),
       ],

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import '../view_models/today_view_model.dart';
-import '../view_models/onboarding_view_model.dart';
+
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
@@ -10,6 +10,7 @@ import '../../domain/entities/measurement.dart';
 import '../../domain/value_objects/measurement_type.dart';
 import '../../core/utils/unit_converter.dart';
 import 'suffix_toggle_text_field.dart';
+import '../../core/providers/units_provider.dart';
 
 class MeasurementEntrySheet extends StatefulWidget {
   final VoidCallback onDismiss;
@@ -27,7 +28,8 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
   void initState() {
     super.initState();
     final today = context.read<TodayViewModel>().today;
-    final isMetric = context.read<OnboardingViewModel>().isMetric;
+    final units = context.read<UnitsProvider>();
+    final isMetric = units.isMetric;
 
     for (final type in MeasurementType.values) {
       final existing = today?.measurements.firstWhere(
@@ -64,7 +66,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
-    final onboardingVm = context.watch<OnboardingViewModel>();
+    final units = context.watch<UnitsProvider>();
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     const tabBarHeight = 84.0;
@@ -116,18 +118,13 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
-                  _buildField(
-                    '⚖️ ${AppLocalizations.of(context)!.weight}',
-                    MeasurementType.weight,
-                    onboardingVm,
-                    colors,
-                  ),
+                  _buildField('⚖️ ${AppLocalizations.of(context)!.weight}', MeasurementType.weight, units, colors),
                   const SizedBox(height: 16),
-                  _buildField('📏 ${AppLocalizations.of(context)!.waist}', MeasurementType.waist, onboardingVm, colors),
+                  _buildField('📏 ${AppLocalizations.of(context)!.waist}', MeasurementType.waist, units, colors),
                   const SizedBox(height: 16),
-                  _buildField('👕 ${AppLocalizations.of(context)!.chest}', MeasurementType.chest, onboardingVm, colors),
+                  _buildField('👕 ${AppLocalizations.of(context)!.chest}', MeasurementType.chest, units, colors),
                   const SizedBox(height: 16),
-                  _buildField('👖 ${AppLocalizations.of(context)!.hips}', MeasurementType.hips, onboardingVm, colors),
+                  _buildField('👖 ${AppLocalizations.of(context)!.hips}', MeasurementType.hips, units, colors),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -135,7 +132,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '💪 ${AppLocalizations.of(context)!.armL}',
                           MeasurementType.armLeft,
-                          onboardingVm,
+                          units,
                           colors,
                         ),
                       ),
@@ -144,7 +141,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '💪 ${AppLocalizations.of(context)!.armR}',
                           MeasurementType.armRight,
-                          onboardingVm,
+                          units,
                           colors,
                         ),
                       ),
@@ -157,7 +154,7 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '🦵 ${AppLocalizations.of(context)!.thighL}',
                           MeasurementType.thighLeft,
-                          onboardingVm,
+                          units,
                           colors,
                         ),
                       ),
@@ -166,14 +163,14 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                         child: _buildField(
                           '🦵 ${AppLocalizations.of(context)!.thighR}',
                           MeasurementType.thighRight,
-                          onboardingVm,
+                          units,
                           colors,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildField('🧣 ${AppLocalizations.of(context)!.neck}', MeasurementType.neck, onboardingVm, colors),
+                  _buildField('🧣 ${AppLocalizations.of(context)!.neck}', MeasurementType.neck, units, colors),
                 ],
               ),
             ),
@@ -181,11 +178,19 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
             Row(
               children: [
                 Expanded(
-                  child: CNButton(label: AppLocalizations.of(context)!.cancel, onPressed: widget.onDismiss),
+                  child: CNButton(
+                    label: AppLocalizations.of(context)!.cancel,
+                    config: const CNButtonConfig(style: CNButtonStyle.glass),
+                    onPressed: widget.onDismiss,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: CNButton(label: AppLocalizations.of(context)!.saveAll, onPressed: () => _save(onboardingVm)),
+                  child: CNButton(
+                    label: AppLocalizations.of(context)!.saveAll,
+                    config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
+                    onPressed: () => _save(units),
+                  ),
                 ),
               ],
             ),
@@ -196,8 +201,9 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
     );
   }
 
-  Widget _buildField(String label, MeasurementType type, OnboardingViewModel vm, AppColors colors) {
-    final suffix = type == MeasurementType.weight ? (vm.isMetric ? 'kg' : 'lbs') : (vm.isMetric ? 'cm' : 'in');
+  Widget _buildField(String label, MeasurementType type, UnitsProvider units, AppColors colors) {
+    final isMetric = units.isMetric;
+    final suffix = type == MeasurementType.weight ? (isMetric ? 'kg' : 'lbs') : (isMetric ? 'cm' : 'in');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,19 +220,17 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
           colors: colors,
           onSuffixTap: () {
             // Convert all relevant controllers
-            final isWeight = type == MeasurementType.weight;
-
             _controllers.forEach((t, controller) {
               final val = double.tryParse(controller.text);
               if (val != null) {
-                if (isWeight && t == MeasurementType.weight) {
-                  if (vm.isMetric) {
+                if (t == MeasurementType.weight) {
+                  if (isMetric) {
                     controller.text = UnitConverter.kgToLbs(val).toStringAsFixed(1);
                   } else {
                     controller.text = UnitConverter.lbsToKg(val).toStringAsFixed(1);
                   }
-                } else if (!isWeight && t != MeasurementType.weight) {
-                  if (vm.isMetric) {
+                } else {
+                  if (isMetric) {
                     controller.text = UnitConverter.cmToInches(val).toStringAsFixed(1);
                   } else {
                     controller.text = UnitConverter.inchesToCm(val).toStringAsFixed(1);
@@ -234,20 +238,20 @@ class _MeasurementEntrySheetState extends State<MeasurementEntrySheet> {
                 }
               }
             });
-            vm.toggleUnits();
+            units.toggleUnitSystem();
           },
         ),
       ],
     );
   }
 
-  void _save(OnboardingViewModel vm) async {
+  void _save(UnitsProvider units) async {
     final List<Measurement> measurements = [];
     _controllers.forEach((type, controller) {
       final value = double.tryParse(controller.text);
       if (value != null && value > 0) {
         double normalizedValue = value;
-        if (!vm.isMetric) {
+        if (!units.isMetric) {
           if (type == MeasurementType.weight) {
             normalizedValue = UnitConverter.lbsToKg(value);
           } else {

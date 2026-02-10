@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show LinearProgressIndicator, AlwaysStoppedAnimation, Colors;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -365,7 +365,11 @@ class _ZonePageState extends State<_ZonePage> with AutomaticKeepAliveClientMixin
           ],
         ),
         const SizedBox(height: 16),
-        CNButton(label: AppLocalizations.of(context)!.exportVideo, onPressed: () => widget.onExport(photos)),
+        CNButton(
+          label: AppLocalizations.of(context)!.exportVideo,
+          config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
+          onPressed: () => widget.onExport(photos),
+        ),
       ],
     );
   }
@@ -644,7 +648,12 @@ class _ExportProgressOverlayIOSState extends State<_ExportProgressOverlayIOS> {
                 minHeight: 8,
               ),
               const SizedBox(height: 48),
-              if (_isDone) CNButton(label: AppLocalizations.of(context)!.done, onPressed: () => Navigator.pop(context)),
+              if (_isDone)
+                CNButton(
+                  label: AppLocalizations.of(context)!.done,
+                  config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
+                  onPressed: () => Navigator.pop(context),
+                ),
             ],
           ),
         ),

@@ -5,7 +5,7 @@
 import FlutterMacOS
 import Foundation
 
-import cupertino_native
+import cupertino_native_better
 import file_selector_macos
 import flutter_quick_video_encoder
 import in_app_review

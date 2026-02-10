@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:cupertino_native/components/button.dart';
-import 'package:cupertino_native/style/sf_symbol.dart';
 import '../camera/camera_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +20,7 @@ import '../profile/profile_screen.dart';
 import '../profile/delete_data_screen.dart';
 import '../settings/language_screen.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 
 enum ActiveSheet { none, macros, measurements }
 
@@ -407,7 +405,7 @@ class _TodayScreenIOSState extends State<TodayScreenIOS> {
             else
               CNButton.icon(
                 icon: const CNSymbol('camera.fill', size: 20),
-                size: 60,
+                config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
                 onPressed: () async {
                   await CameraScreen.show(context, zone);
                   vm.refresh();

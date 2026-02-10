@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/settings_view_model.dart';
@@ -298,9 +298,14 @@ class _CameraView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          CNButton(label: 'Retake', onPressed: () => vm.retake()),
+          CNButton(
+            label: 'Retake',
+            config: const CNButtonConfig(style: CNButtonStyle.glass),
+            onPressed: () => vm.retake(),
+          ),
           CNButton(
             label: 'Use Photo',
+            config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
             onPressed: () async {
               final todayVm = context.read<TodayViewModel>();
               await vm.confirm(

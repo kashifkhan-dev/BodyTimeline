@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:provider/provider.dart';
 import '../view_models/today_view_model.dart';
 import 'today/today_screen.dart';

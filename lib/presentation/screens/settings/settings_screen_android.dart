@@ -16,12 +16,13 @@ class SettingsScreenAndroid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final vm = context.watch<SettingsViewModel>();
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
     final config = vm.config;
 
-    if (config == null) {
+    if (config == null || l10n == null) {
       return Scaffold(
         backgroundColor: colors.background,
         body: Center(child: CircularProgressIndicator(color: colors.primary)),

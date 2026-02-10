@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:cupertino_native/cupertino_native.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import '../view_models/today_view_model.dart';
-import '../view_models/onboarding_view_model.dart';
+
 import '../../core/theme/theme_provider.dart';
 import '../../core/theme/color_palette.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
 import '../../core/utils/unit_converter.dart';
 import 'suffix_toggle_text_field.dart';
+import '../../core/providers/units_provider.dart';
 
 class MacroEntrySheet extends StatefulWidget {
   final VoidCallback onDismiss;
@@ -28,7 +29,8 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
   void initState() {
     super.initState();
     final today = context.read<TodayViewModel>().today;
-    final isMetric = context.read<OnboardingViewModel>().isMetric;
+    final units = context.read<UnitsProvider>();
+    final isMetric = units.isMetric;
 
     if (today?.macros != null) {
       _caloriesController.text = today!.macros!.calories > 0 ? today.macros!.calories.toStringAsFixed(0) : '';
@@ -62,7 +64,7 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final colors = theme.colors(context);
-    final onboardingVm = context.watch<OnboardingViewModel>();
+    final units = context.watch<UnitsProvider>();
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     const tabBarHeight = 84.0;
@@ -130,7 +132,7 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                       '🍽️ ${AppLocalizations.of(context)!.calories}',
                       _caloriesController,
                       'kcal',
-                      onboardingVm,
+                      units,
                       colors,
                       isCals: true,
                     ),
@@ -140,8 +142,8 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                     child: _buildField(
                       '🥩 ${AppLocalizations.of(context)!.protein}',
                       _proteinController,
-                      onboardingVm.isMetric ? 'g' : 'oz',
-                      onboardingVm,
+                      units.isMetric ? 'g' : 'oz',
+                      units,
                       colors,
                     ),
                   ),
@@ -154,8 +156,8 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                     child: _buildField(
                       '🥔 ${AppLocalizations.of(context)!.carbs}',
                       _carbsController,
-                      onboardingVm.isMetric ? 'g' : 'oz',
-                      onboardingVm,
+                      units.isMetric ? 'g' : 'oz',
+                      units,
                       colors,
                     ),
                   ),
@@ -164,8 +166,8 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
                     child: _buildField(
                       '🧈 ${AppLocalizations.of(context)!.fats}',
                       _fatController,
-                      onboardingVm.isMetric ? 'g' : 'oz',
-                      onboardingVm,
+                      units.isMetric ? 'g' : 'oz',
+                      units,
                       colors,
                     ),
                   ),
@@ -177,13 +179,18 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
               Row(
                 children: [
                   Expanded(
-                    child: CNButton(label: AppLocalizations.of(context)!.cancel, onPressed: widget.onDismiss),
+                    child: CNButton(
+                      label: AppLocalizations.of(context)!.cancel,
+                      config: const CNButtonConfig(style: CNButtonStyle.glass),
+                      onPressed: widget.onDismiss,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: CNButton(
                       label: AppLocalizations.of(context)!.saveLogs,
-                      onPressed: () => _save(onboardingVm),
+                      config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
+                      onPressed: () => _save(units),
                     ),
                   ),
                 ],
@@ -212,7 +219,7 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
     String label,
     TextEditingController controller,
     String unit,
-    OnboardingViewModel vm,
+    UnitsProvider units,
     AppColors colors, {
     bool isCals = false,
   }) {
@@ -232,31 +239,32 @@ class _MacroEntrySheetState extends State<MacroEntrySheet> {
           onSuffixTap: () {
             if (isCals) return; // Calories don't toggle
 
+            final isMetric = units.isMetric;
             final controllers = [_proteinController, _carbsController, _fatController];
             for (var c in controllers) {
               final val = double.tryParse(c.text);
               if (val != null) {
-                if (vm.isMetric) {
+                if (isMetric) {
                   c.text = UnitConverter.gToOz(val).toStringAsFixed(2);
                 } else {
                   c.text = UnitConverter.ozToG(val).toStringAsFixed(1);
                 }
               }
             }
-            vm.toggleUnits();
+            units.toggleUnitSystem();
           },
         ),
       ],
     );
   }
 
-  void _save(OnboardingViewModel vm) async {
+  void _save(UnitsProvider units) async {
     double calories = double.tryParse(_caloriesController.text) ?? 0;
     double protein = double.tryParse(_proteinController.text) ?? 0;
     double carbs = double.tryParse(_carbsController.text) ?? 0;
     double fat = double.tryParse(_fatController.text) ?? 0;
 
-    if (!vm.isMetric) {
+    if (!units.isMetric) {
       protein = UnitConverter.ozToG(protein);
       carbs = UnitConverter.ozToG(carbs);
       fat = UnitConverter.ozToG(fat);

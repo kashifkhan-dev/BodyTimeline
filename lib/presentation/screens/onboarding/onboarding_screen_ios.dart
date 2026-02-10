@@ -1,5 +1,7 @@
 import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
+import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/onboarding_view_model.dart';
@@ -10,6 +12,8 @@ import '../main_shell.dart';
 import '../../view_models/locale_view_model.dart';
 import '../../../domain/entities/app_language.dart';
 import 'package:workout/l10n/generated/app_localizations.dart';
+import '../../../core/providers/units_provider.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class OnboardingScreenIOS extends StatefulWidget {
   const OnboardingScreenIOS({super.key});
@@ -20,66 +24,64 @@ class OnboardingScreenIOS extends StatefulWidget {
 
 class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
-  final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _weightController = TextEditingController();
 
-  late AnimationController _rocketController;
-  late Animation<Offset> _rocketMove;
-  late Animation<double> _rocketScale;
-  late Animation<double> _rocketOpacity;
-  late Animation<double> _rocketRotate;
-  bool _isLaunching = false;
+  late AnimationController _transitionController;
+  late Animation<double> _day1Opacity;
+  late Animation<Offset> _day1Move;
+  late Animation<double> _day30Opacity;
+  late Animation<Offset> _day30Move;
+  bool _transitionCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _rocketController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+    _transitionController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
 
-    _rocketMove = Tween<Offset>(begin: Offset.zero, end: const Offset(10, -3)).animate(
+    _day1Opacity = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
-        parent: _rocketController,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeInBack),
+        parent: _transitionController,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeInOut),
+      ),
+    );
+    _day1Move = Tween<Offset>(begin: Offset.zero, end: const Offset(-0.2, 0.0)).animate(
+      CurvedAnimation(
+        parent: _transitionController,
+        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
       ),
     );
 
-    _rocketScale = Tween<double>(begin: 1.0, end: 3.5).animate(
+    _day30Opacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _rocketController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeInOut),
+        parent: _transitionController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
       ),
     );
-
-    _rocketOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
+    _day30Move = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
       CurvedAnimation(
-        parent: _rocketController,
-        curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
+        parent: _transitionController,
+        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
       ),
     );
+  }
 
-    _rocketRotate =
-        Tween<double>(
-          begin: 0.0,
-          end: -0.07, // Tilt upward-right to match trajectory (~-25 degrees)
-        ).animate(
-          CurvedAnimation(
-            parent: _rocketController,
-            curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-          ),
-        );
+  void _startTransition() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      _transitionController.forward().then((_) {
+        if (mounted) setState(() => _transitionCompleted = true);
+      });
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _ageController.dispose();
-    _heightController.dispose();
-    _weightController.dispose();
-    _rocketController.dispose();
+    _transitionController.dispose();
     super.dispose();
   }
 
   void _next() {
+    context.read<OnboardingViewModel>().nextStep();
     _pageController.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutCubic);
   }
 
@@ -96,7 +98,7 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
       backgroundColor: colors.background,
       child: Stack(
         children: [
-          // Dynamic Background
+          // Dynamic Background (Subtle Gradient)
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -104,10 +106,9 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    colors.primary.withOpacity(0.05),
-                    colors.background,
-                    colors.background,
-                    colors.primary.withOpacity(0.02),
+                    colors.primary.withValues(alpha: 0.05),
+                    Colors.transparent,
+                    colors.primary.withValues(alpha: 0.02),
                   ],
                 ),
               ),
@@ -115,23 +116,108 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
           ),
 
           SafeArea(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
+            child: Column(
               children: [
-                _buildWelcomeStep(context, colors, l10n),
-                _buildGoalStep(context, colors, onboardingVm, l10n),
-                _buildGenderStep(context, colors, onboardingVm, l10n),
-                _buildAgeStep(context, colors, onboardingVm, l10n),
-                _buildHeightStep(context, colors, onboardingVm, l10n),
-                _buildWeightStep(context, colors, onboardingVm, l10n),
-                _buildFrequencyStep(context, colors, onboardingVm, l10n),
-                _buildFinalStep(context, colors, onboardingVm, l10n),
+                _buildTopBar(context, colors, onboardingVm),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(), // Disable swiping, enforce navigation rules
+                    onPageChanged: (index) {
+                      if (index == OnboardingStep.values.length - 1) {
+                        _startTransition();
+                      }
+                    },
+                    children: [
+                      _buildWelcomeStep(context, colors, l10n),
+                      _buildGoalStep(context, colors, onboardingVm, l10n),
+                      _buildGenderStep(context, colors, onboardingVm, l10n),
+                      _buildAgeStep(context, colors, onboardingVm, l10n),
+                      _buildHeightStep(context, colors, onboardingVm, l10n),
+                      _buildWeightStep(context, colors, onboardingVm, l10n),
+                      _buildFrequencyStep(context, colors, onboardingVm, l10n),
+                      _buildFinalStep(context, colors, onboardingVm, l10n),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context, AppColors colors, OnboardingViewModel vm) {
+    final steps = OnboardingStep.values;
+    final currentIndex = steps.indexOf(vm.currentStep);
+    final totalSteps = steps.length;
+    final localeVm = context.watch<LocaleViewModel>();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // LEFT: prominent back button
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: (currentIndex > 0 && vm.currentStep != OnboardingStep.finalizing)
+                ? CNButton.icon(
+                    icon: const CNSymbol('chevron.left', size: 24),
+                    onPressed: () {
+                      vm.previousStep();
+                      _pageController.previousPage(
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeInOutCubic,
+                      );
+                    },
+                  )
+                : null,
+          ),
+
+          // CENTER: progress bar
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: (currentIndex + 1) / totalSteps,
+                  backgroundColor: colors.surface,
+                  valueColor: AlwaysStoppedAnimation(colors.primary),
+                  minHeight: 4,
+                ),
+              ),
+            ),
+          ),
+
+          // RIGHT: language flag
+          SizedBox(width: 48, height: 48, child: _buildLanguageFlag(context, localeVm, colors)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageFlag(BuildContext context, LocaleViewModel localeVm, AppColors colors) {
+    String flag = '🇺🇸';
+    if (localeVm.currentLanguage == AppLanguage.french) flag = '🇫🇷';
+    if (localeVm.currentLanguage == AppLanguage.spanish) flag = '🇪🇸';
+
+    return CNPopupMenuButton(
+      buttonLabel: flag,
+      buttonStyle: CNButtonStyle.plain,
+      items: AppLanguage.values.map((lang) {
+        String f = '🇺🇸';
+        if (lang == AppLanguage.french) f = '🇫🇷';
+        if (lang == AppLanguage.spanish) f = '🇪🇸';
+        return CNPopupMenuItem(label: "$f ${lang.code.toUpperCase()}");
+      }).toList(),
+      onSelected: (index) {
+        final lang = AppLanguage.values[index];
+        localeVm.setLanguage(lang);
+      },
     );
   }
 
@@ -147,16 +233,6 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (showBackButton)
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                _pageController.previousPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutCubic);
-              },
-              child: const Icon(CupertinoIcons.arrow_left, size: 28),
-            )
-          else
-            const SizedBox(height: 44),
           const SizedBox(height: 20),
           Text(title, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, letterSpacing: -1)),
           const SizedBox(height: 40),
@@ -164,7 +240,15 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
           if (buttonLabel != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
-              child: _ProminentButton(label: buttonLabel, onPressed: onButtonPressed),
+              child: SizedBox(
+                width: double.infinity,
+                height: 64, // Bigger button
+                child: CNButton(
+                  label: buttonLabel,
+                  onPressed: onButtonPressed,
+                  config: const CNButtonConfig(style: CNButtonStyle.prominentGlass),
+                ),
+              ),
             ),
         ],
       ),
@@ -172,8 +256,6 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
   }
 
   Widget _buildWelcomeStep(BuildContext context, AppColors colors, AppLocalizations l10n) {
-    final localeVm = context.watch<LocaleViewModel>();
-
     return _buildStepContainer(
       title: l10n.onboardingWelcomeTitle,
       showBackButton: false,
@@ -185,47 +267,62 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
             l10n.onboardingSubtitle,
             style: TextStyle(fontSize: 18, color: colors.textSecondary, fontWeight: FontWeight.w400),
           ),
-          const SizedBox(height: 24),
-          // Character Comparison with Depth & 3D Presence
+          const SizedBox(height: 48),
           Expanded(
             child: Row(
               children: [
-                Expanded(child: _buildAnimatedCharacter("assets/images/onboard_before.png", "Before", colors)),
-                const SizedBox(width: 8),
-                Expanded(child: _buildAnimatedCharacter("assets/images/onboard_after.png", "After", colors)),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: colors.border.withValues(alpha: 0.2), width: 1),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Center(
+                            child: Transform.scale(
+                              scale: 0.9,
+                              child: Image.asset("assets/images/day1.png", fit: BoxFit.contain),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "Day 1",
+                        style: TextStyle(color: colors.textSecondary, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: colors.border.withValues(alpha: 0.2), width: 1),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Center(child: Image.asset("assets/images/day30.png", fit: BoxFit.contain)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "Day 30",
+                        style: TextStyle(color: colors.textSecondary, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-
-          const SizedBox(height: 32),
-
-          // Minimalist Language Picker
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: AppLanguage.values.map((lang) {
-              final isSelected = localeVm.currentLanguage == lang;
-              return GestureDetector(
-                onTap: () {
-                  debugPrint('🌍 Language changed to: ${lang.code}');
-                  localeVm.setLanguage(lang);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 300),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
-                      color: isSelected ? colors.primary : colors.textMuted,
-                      letterSpacing: 0.5,
-                    ),
-                    child: Text(lang.code.toUpperCase()),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 48),
         ],
       ),
     );
@@ -295,111 +392,147 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
     return _buildStepContainer(
       title: l10n.onboardingAgeTitle,
       buttonLabel: l10n.continueButton,
-      onButtonPressed: () {
-        final age = int.tryParse(_ageController.text);
-        if (age != null) {
-          vm.setAge(age);
-          _next();
-        }
-      },
-      child: Center(
-        child: _buildGlossyTextField(
-          controller: _ageController,
-          placeholder: l10n.onboardingAgePlaceholder,
-          keyboardType: TextInputType.number,
-          colors: colors,
-        ),
+      onButtonPressed: vm.canProceed ? _next : null,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            vm.age == 0 ? "--" : vm.age.toString(),
+            style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 48),
+          CNSlider(
+            value: vm.ageInteracted ? vm.age.toDouble() : 25.0,
+            min: 13,
+            max: 100,
+            onChanged: (val) {
+              if (!vm.ageInteracted) {
+                vm.setAge(25);
+              } else {
+                vm.setAge(val.round());
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeightStep(BuildContext context, AppColors colors, OnboardingViewModel vm, AppLocalizations l10n) {
-    // Current display value
-    if (_heightController.text.isEmpty && vm.heightCm != null) {
-      if (vm.isMetric) {
-        _heightController.text = (vm.heightCm! / 100).toStringAsFixed(2);
-      } else {
-        _heightController.text = UnitConverter.mToFt(vm.heightCm! / 100).toStringAsFixed(1);
-      }
-    }
+    final units = context.watch<UnitsProvider>();
+    final isMetric = units.isMetric;
 
     return _buildStepContainer(
       title: l10n.onboardingHeightTitle,
       buttonLabel: l10n.continueButton,
-      onButtonPressed: () {
-        final val = double.tryParse(_heightController.text);
-        if (val != null) {
-          final m = vm.isMetric ? val : UnitConverter.ftToM(val);
-          vm.setHeight(m * 100);
-          _next();
-        }
-      },
-      child: Center(
-        child: _buildGlossyTextField(
-          controller: _heightController,
-          placeholder: l10n.onboardingHeightPlaceholder,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          colors: colors,
-          suffix: vm.isMetric ? "m" : "ft",
-          onSuffixTap: () {
-            final currentVal = double.tryParse(_heightController.text);
-            if (currentVal != null) {
-              if (vm.isMetric) {
-                // To Imperial
-                _heightController.text = UnitConverter.mToFt(currentVal).toStringAsFixed(1);
+      onButtonPressed: vm.canProceed ? _next : null,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: () => units.toggleUnitSystem(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  vm.heightCm == 0
+                      ? "--"
+                      : (isMetric ? vm.heightCm.toInt().toString() : UnitConverter.formatCmAsFeetInches(vm.heightCm)),
+                  style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                if (isMetric || vm.heightCm == 0)
+                  Text(
+                    units.heightUnit,
+                    style: TextStyle(fontSize: 24, color: colors.primary, fontWeight: FontWeight.bold),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 48),
+          CNSlider(
+            value: vm.heightInteracted ? vm.heightCm : 160.0,
+            min: 100,
+            max: 220,
+            onChanged: (val) {
+              if (!vm.heightInteracted) {
+                vm.setHeight(160);
               } else {
-                // To Metric
-                _heightController.text = UnitConverter.ftToM(currentVal).toStringAsFixed(2);
+                vm.setHeight(val);
               }
-            }
-            vm.toggleUnits();
-          },
-        ),
+            },
+          ),
+          const SizedBox(height: 32),
+          Center(
+            child: CNSegmentedControl(
+              labels: const ['Metric', 'Imperial'],
+              selectedIndex: isMetric ? 0 : 1,
+              onValueChanged: (index) => units.setUnitSystem(index == 0 ? UnitSystem.metric : UnitSystem.imperial),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildWeightStep(BuildContext context, AppColors colors, OnboardingViewModel vm, AppLocalizations l10n) {
-    if (_weightController.text.isEmpty && vm.weightKg != null) {
-      if (vm.isMetric) {
-        _weightController.text = vm.weightKg!.toStringAsFixed(1);
-      } else {
-        _weightController.text = UnitConverter.kgToLbs(vm.weightKg!).toStringAsFixed(1);
-      }
-    }
+    final units = context.watch<UnitsProvider>();
+    final isMetric = units.isMetric;
 
     return _buildStepContainer(
       title: l10n.onboardingWeightTitle,
       buttonLabel: l10n.continueButton,
-      onButtonPressed: () {
-        final val = double.tryParse(_weightController.text);
-        if (val != null) {
-          final kg = vm.isMetric ? val : UnitConverter.lbsToKg(val);
-          vm.setWeight(kg);
-          _next();
-        }
-      },
-      child: Center(
-        child: _buildGlossyTextField(
-          controller: _weightController,
-          placeholder: l10n.onboardingWeightPlaceholder,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          colors: colors,
-          suffix: vm.isMetric ? "kg" : "lbs",
-          onSuffixTap: () {
-            final currentVal = double.tryParse(_weightController.text);
-            if (currentVal != null) {
-              if (vm.isMetric) {
-                // To Imperial
-                _weightController.text = UnitConverter.kgToLbs(currentVal).toStringAsFixed(1);
+      onButtonPressed: vm.canProceed ? _next : null,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: () => units.toggleUnitSystem(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  vm.weightKg == 0
+                      ? "--"
+                      : (isMetric
+                            ? vm.weightKg.toStringAsFixed(1)
+                            : UnitConverter.kgToLbs(vm.weightKg).toStringAsFixed(1)),
+                  style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  units.weightUnit,
+                  style: TextStyle(fontSize: 24, color: colors.primary, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 48),
+          CNSlider(
+            value: vm.weightInteracted ? vm.weightKg : 115.0,
+            min: 30,
+            max: 200,
+            onChanged: (val) {
+              if (!vm.weightInteracted) {
+                vm.setWeight(115);
               } else {
-                // To Metric
-                _weightController.text = UnitConverter.lbsToKg(currentVal).toStringAsFixed(1);
+                vm.setWeight(val);
               }
-            }
-            vm.toggleUnits();
-          },
-        ),
+            },
+          ),
+          const SizedBox(height: 32),
+          Center(
+            child: CNSegmentedControl(
+              labels: const ['Metric', 'Imperial'],
+              selectedIndex: isMetric ? 0 : 1,
+              onValueChanged: (index) => units.setUnitSystem(index == 0 ? UnitSystem.metric : UnitSystem.imperial),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -413,6 +546,8 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
     ];
     return _buildStepContainer(
       title: l10n.onboardingFrequencyTitle,
+      buttonLabel: l10n.continueButton,
+      onButtonPressed: vm.canProceed ? _next : null,
       child: ListView.separated(
         itemCount: options.length,
         separatorBuilder: (_, __) => const SizedBox(height: 16),
@@ -435,12 +570,15 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
 
   Widget _buildFinalStep(BuildContext context, AppColors colors, OnboardingViewModel vm, AppLocalizations l10n) {
     return _buildStepContainer(
-      title: l10n.onboardingFinalTitle,
-      buttonLabel: _isLaunching ? null : l10n.onboardingStartJourney,
+      title: "Lets Start",
+      buttonLabel: "Start tracking",
       onButtonPressed: () async {
-        setState(() => _isLaunching = true);
         await vm.completeOnboarding();
-        await _rocketController.forward();
+        // Trigger native app review prompt
+        final InAppReview inAppReview = InAppReview.instance;
+        if (await inAppReview.isAvailable()) {
+          inAppReview.requestReview();
+        }
         if (mounted) {
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
@@ -451,106 +589,44 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
           );
         }
       },
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedBuilder(
-              animation: _rocketController,
+      child: Column(
+        children: [
+          Text(
+            "Day 1 starts today. In 30 days, this photo will look different.",
+            style: TextStyle(fontSize: 18, color: colors.textSecondary, fontWeight: FontWeight.w400),
+          ),
+          const SizedBox(height: 48),
+          Expanded(
+            child: AnimatedBuilder(
+              animation: _transitionController,
               builder: (context, child) {
-                return SlideTransition(
-                  position: _rocketMove,
-                  child: ScaleTransition(
-                    scale: _rocketScale,
-                    child: RotationTransition(
-                      turns: _rocketRotate,
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Day 1: Fades out and translates slightly left
+                    SlideTransition(
+                      position: _day1Move,
                       child: FadeTransition(
-                        opacity: _rocketOpacity,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (_isLaunching) Positioned(bottom: 0, child: _buildEngineFlame(colors)),
-                            const Text("🚀", style: TextStyle(fontSize: 100)),
-                          ],
-                        ),
+                        opacity: _day1Opacity,
+                        child: Image.asset("assets/images/day1.png", fit: BoxFit.contain),
                       ),
                     ),
-                  ),
+                    // Day 30: Slides in from right and fades in
+                    SlideTransition(
+                      position: _day30Move,
+                      child: FadeTransition(
+                        opacity: _day30Opacity,
+                        child: Image.asset("assets/images/day30.png", fit: BoxFit.contain),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
-            const SizedBox(height: 40),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 500),
-              opacity: _isLaunching ? 0.0 : 1.0,
-              child: Text(
-                l10n.onboardingReady,
-                style: TextStyle(fontSize: 20, color: colors.textSecondary, fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEngineFlame(AppColors colors) {
-    return Container(
-      width: 40,
-      height: 60,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [colors.primary.withOpacity(0.8), Colors.orange.withOpacity(0.4), Colors.transparent],
-        ),
-        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-      ),
-    );
-  }
-
-  Widget _buildAnimatedCharacter(String assetPath, String label, AppColors colors) {
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 1200),
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value.clamp(0.0, 1.0),
-          child: Transform.scale(
-            // Scale from 0.8 to 1.03 for a "pop" effect
-            scale: 0.8 + (value * 0.23),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Floating Ground Shadow
-                Positioned(
-                  bottom: 20,
-                  child: Container(
-                    width: 100,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(color: colors.textPrimary.withOpacity(0.12 * value), blurRadius: 12, spreadRadius: 2),
-                      ],
-                      borderRadius: const BorderRadius.all(Radius.elliptical(50, 5)),
-                    ),
-                  ),
-                ),
-                // The Character PNG
-                Image.asset(
-                  assetPath,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    debugPrint('❌ Failed to load $assetPath: $error');
-                    return Icon(CupertinoIcons.person_solid, size: 64, color: colors.textMuted);
-                  },
-                ),
-              ],
-            ),
           ),
-        );
-      },
+          const SizedBox(height: 48),
+        ],
+      ),
     );
   }
 
@@ -567,12 +643,9 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         decoration: BoxDecoration(
-          color: isSelected ? colors.primary.withOpacity(0.1) : colors.card.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? colors.primary : colors.border.withOpacity(0.5),
-            width: isSelected ? 2 : 1,
-          ),
+          color: isSelected ? colors.primary.withValues(alpha: 0.1) : colors.card.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isSelected ? colors.primary : colors.border.withValues(alpha: 0.5), width: 1.5),
         ),
         child: Row(
           children: [
@@ -592,117 +665,6 @@ class _OnboardingScreenIOSState extends State<OnboardingScreenIOS> with TickerPr
             ),
             if (isSelected) Icon(CupertinoIcons.checkmark_alt_circle_fill, color: colors.primary),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlossyTextField({
-    required TextEditingController controller,
-    required String placeholder,
-    required AppColors colors,
-    TextInputType? keyboardType,
-    String? suffix,
-    VoidCallback? onSuffixTap,
-  }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colors.background.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.border.withOpacity(0.3)),
-          ),
-          child: CupertinoTextField(
-            controller: controller,
-            placeholder: placeholder,
-            keyboardType: keyboardType,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-            decoration: null,
-            suffix: suffix != null
-                ? GestureDetector(
-                    onTap: onSuffixTap,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 24),
-                      child: Text(
-                        suffix,
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colors.primary),
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProminentButton extends StatefulWidget {
-  final String label;
-  final VoidCallback? onPressed;
-
-  const _ProminentButton({required this.label, this.onPressed});
-
-  @override
-  State<_ProminentButton> createState() => _ProminentButtonState();
-}
-
-class _ProminentButtonState extends State<_ProminentButton> with SingleTickerProviderStateMixin {
-  late AnimationController _pressController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pressController = AnimationController(vsync: this, duration: const Duration(milliseconds: 100));
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.96,
-    ).animate(CurvedAnimation(parent: _pressController, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _pressController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.watch<ThemeProvider>().colors(context);
-    final bool isEnabled = widget.onPressed != null;
-
-    return GestureDetector(
-      onTapDown: (_) => isEnabled ? _pressController.forward() : null,
-      onTapUp: (_) => isEnabled ? _pressController.reverse() : null,
-      onTapCancel: () => isEnabled ? _pressController.reverse() : null,
-      onTap: widget.onPressed,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          width: double.infinity,
-          height: 64,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [colors.primary, colors.primary.withAlpha(200)]),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: colors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-          ),
-          child: Center(
-            child: Text(
-              widget.label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
         ),
       ),
     );

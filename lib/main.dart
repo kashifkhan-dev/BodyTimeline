@@ -38,6 +38,7 @@ import 'domain/repositories/locale_repository.dart';
 import 'presentation/view_models/locale_view_model.dart';
 import 'presentation/view_models/onboarding_view_model.dart';
 import 'core/services/review_service.dart';
+import 'core/providers/units_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,6 +67,7 @@ void main() async {
       providers: [
         // Theme Management
         ChangeNotifierProvider(create: (_) => ThemeProvider(initialThemeMode)),
+        ChangeNotifierProvider(create: (_) => UnitsProvider(prefs)),
 
         // Repository Injection
         Provider<WorkoutRepository>.value(value: workoutRepo),
