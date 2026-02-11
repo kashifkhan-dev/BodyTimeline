@@ -44,3 +44,19 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 progress_1.md
+
+# Security and Secrets
+*.p8
+AuthKey_*.txt
+*.p12
+*.keystore
+*.jks
+.env*
+secrets.yaml
+
+# iOS Distribution
+**/ios/ExportOptions.plist
+**/ios/Runner.xcarchive/
+*.ipa
+*.app
+
