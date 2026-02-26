@@ -45,5 +45,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>BodyTimeline uses your camera to let you take progress photos and track your physical transformation over time.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BodyTimeline requires microphone access for video recording within the camera feature.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>BodyTimeline requires access to your photo library to import existing progress photos and save your transformation journey.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>BodyTimeline saves your progress photos and transformation collages directly to your photo library.</string>
 </dict>
 </plist>

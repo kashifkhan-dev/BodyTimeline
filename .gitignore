@@ -53,10 +53,21 @@ AuthKey_*.txt
 *.jks
 .env*
 secrets.yaml
+fastlane_creds_and_secrets/
+find_team_id.rb
 
 # iOS Distribution
 **/ios/ExportOptions.plist
 **/ios/Runner.xcarchive/
 *.ipa
 *.app
+*.mobileprovision
+*.cer
+
+# Fastlane
+**/ios/fastlane/report.xml
+**/ios/fastlane/Preview.html
+**/ios/fastlane/screenshots
+**/ios/fastlane/test_output
+**/ios/fastlane/gc_keys.json
 
